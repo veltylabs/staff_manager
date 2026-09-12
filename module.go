@@ -48,33 +48,90 @@ func New(db *orm.DB, deps Deps) (*Module, error) {
 	}, nil
 }
 
+// deviceProbe is a minimal read model for the device table, used only as
+// fallback in IsTrustedIP when DeviceReader is unavailable or fails. It
+// mirrors the device table's columns needed for the check.
+type deviceProbe struct {
+	Id       string
+	TenantId string
+	Ip       string
+	IsActive bool
+}
+
+func (m *deviceProbe) ModelName() string { return "device" }
+func (m *deviceProbe) Schema() []model.Field {
+	return []model.Field{
+		{Name: "id", Type: model.Text()},
+		{Name: "tenant_id", Type: model.Text()},
+		{Name: "ip", Type: model.Text()},
+		{Name: "is_active", Type: BaseBool_FieldBool},
+	}
+}
+func (m *deviceProbe) Pointers() []any { return []any{&m.Id, &m.TenantId, &m.Ip, &m.IsActive} }
+func (m *deviceProbe) IsNil() bool     { return m == nil }
+func (m *deviceProbe) EncodeFields(w model.FieldWriter) {
+	w.String("id", m.Id)
+	w.String("tenant_id", m.TenantId)
+	w.String("ip", m.Ip)
+	w.Bool("is_active", m.IsActive)
+}
+func (m *deviceProbe) DecodeFields(r model.FieldReader) {
+	if v, ok := r.String("id"); ok {
+		m.Id = v
+	}
+	if v, ok := r.String("tenant_id"); ok {
+		m.TenantId = v
+	}
+	if v, ok := r.String("ip"); ok {
+		m.Ip = v
+	}
+	if v, ok := r.Bool("is_active"); ok {
+		m.IsActive = v
+	}
+}
+func (m *deviceProbe) Validate(action byte) error { return nil }
+
 // IsTrustedIP implements auth.TrustedIPStore
 func (m *Module) IsTrustedIP(userID, ip string) bool {
 	if m.db == nil || userID == "" || ip == "" {
 		return false
 	}
-	// Find staff member for user
 	var staff StaffMember
-	qb := m.db.Query(&staff).Where("user_id").Eq(userID).Where("tenant_id").Eq(m.tenantID).Where("is_active").Eq(true)
+	qb := m.db.Query(&staff).Where("user_id").Eq(userID).Where("tenant_id").Eq(m.tenantID)
 	err := qb.ReadOne()
-	if err != nil {
+	if err != nil || !staff.IsActive {
 		return false
 	}
-	// Find device id for IP via DeviceReader if available, else check via device table directly?
-	// Prefer DeviceReader if provided, but fallback to checking device id via IP lookup in staff_device join:
-	// If Devices is available, resolve IP -> deviceID, then check staff_device
 	if m.devices != nil {
-		deviceID, ok := m.devices.FindByIP(ip)
-		if !ok {
-			return false
+		if deviceID, ok := m.devices.FindByIP(ip); ok {
+			var sd StaffDevice
+			qb2 := m.db.Query(&sd).Where("staff_id").Eq(staff.Id).Where("device_id").Eq(deviceID)
+			if qb2.ReadOne() == nil {
+				return true
+			}
 		}
-		var sd StaffDevice
-		qb2 := m.db.Query(&sd).Where("staff_id").Eq(staff.Id).Where("device_id").Eq(deviceID)
-		err = qb2.ReadOne()
-		return err == nil
 	}
-	// Fallback: check if any device assigned to this staff has this IP by joining? Not available without device table.
-	// Return false if no Devices reader.
+	// Fallback: scan assigned devices and compare IP via direct device query
+	var list StaffDeviceList
+	if err := m.db.Query(&StaffDevice{}).Where("staff_id").Eq(staff.Id).ReadAll(
+		func() model.Model { return &StaffDevice{} },
+		func(mm model.Model) { list = append(list, mm.(*StaffDevice)) },
+	); err != nil {
+		return false
+	}
+	for _, sd := range list {
+		if m.devices != nil {
+			if did, ok := m.devices.FindByIP(ip); ok && did == sd.DeviceId {
+				return true
+			}
+		}
+		var dev deviceProbe
+		if err := m.db.Query(&dev).Where("id").Eq(sd.DeviceId).Where("tenant_id").Eq(m.tenantID).ReadOne(); err == nil {
+			if dev.Ip == ip && dev.IsActive {
+				return true
+			}
+		}
+	}
 	return false
 }
 
