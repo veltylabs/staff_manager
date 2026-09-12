@@ -5,6 +5,7 @@ import (
 	"webtyp.com/fmt"
 	"webtyp.com/model"
 	"webtyp.com/orm"
+	"webtyp.com/time"
 )
 
 type DeviceReader interface {
@@ -93,36 +94,23 @@ func (m *deviceProbe) Validate(action byte) error { return nil }
 
 // IsTrustedIP implements auth.TrustedIPStore
 func (m *Module) IsTrustedIP(userID, ip string) bool {
-	fmt.Printf("IsTrustedIP start userID=%q ip=%q tenant=%q\n", userID, ip, m.tenantID)
 	if m.db == nil || userID == "" || ip == "" {
-		fmt.Printf("IsTrustedIP early false\n")
 		return false
 	}
 	var staff StaffMember
 	qb := m.db.Query(&staff).Where("user_id").Eq(userID).Where("tenant_id").Eq(m.tenantID)
 	err := qb.ReadOne()
-	fmt.Printf("IsTrustedIP staff err=%v staff=%+v isActive=%v\n", err, staff, staff.IsActive)
 	if err != nil || !staff.IsActive {
-		fmt.Printf("IsTrustedIP staff not found or inactive\n")
 		return false
 	}
 	if m.devices != nil {
-		fmt.Printf("IsTrustedIP trying DeviceReader FindByIP ip=%q\n", ip)
 		if deviceID, ok := m.devices.FindByIP(ip); ok {
-			fmt.Printf("IsTrustedIP FindByIP ok deviceID=%q\n", deviceID)
 			var sd StaffDevice
 			qb2 := m.db.Query(&sd).Where("staff_id").Eq(staff.Id).Where("device_id").Eq(deviceID)
-			err2 := qb2.ReadOne()
-			fmt.Printf("IsTrustedIP staff_device lookup err=%v sd=%+v\n", err2, sd)
-			if err2 == nil {
-				fmt.Printf("IsTrustedIP success via DeviceReader\n")
+			if qb2.ReadOne() == nil {
 				return true
 			}
-		} else {
-			fmt.Printf("IsTrustedIP FindByIP not ok\n")
 		}
-	} else {
-		fmt.Printf("IsTrustedIP no devices reader\n")
 	}
 	// Fallback: scan assigned devices and compare IP via direct device query
 	var list StaffDeviceList
@@ -130,30 +118,21 @@ func (m *Module) IsTrustedIP(userID, ip string) bool {
 		func() model.Model { return &StaffDevice{} },
 		func(mm model.Model) { list = append(list, mm.(*StaffDevice)) },
 	); err != nil {
-		fmt.Printf("IsTrustedIP fallback ReadAll err=%v\n", err)
 		return false
 	}
-	fmt.Printf("IsTrustedIP fallback list len=%d\n", len(list))
 	for _, sd := range list {
-		fmt.Printf("IsTrustedIP fallback check sd=%+v\n", sd)
 		if m.devices != nil {
 			if did, ok := m.devices.FindByIP(ip); ok && did == sd.DeviceId {
-				fmt.Printf("IsTrustedIP fallback success via DeviceReader did=%q\n", did)
 				return true
 			}
 		}
 		var dev deviceProbe
 		if err := m.db.Query(&dev).Where("id").Eq(sd.DeviceId).Where("tenant_id").Eq(m.tenantID).ReadOne(); err == nil {
-			fmt.Printf("IsTrustedIP deviceProbe dev=%+v ip equal=%v isActive=%v\n", dev, dev.Ip == ip, dev.IsActive)
 			if dev.Ip == ip && dev.IsActive {
-				fmt.Printf("IsTrustedIP success via deviceProbe\n")
 				return true
 			}
-		} else {
-			fmt.Printf("IsTrustedIP deviceProbe err=%v\n", err)
 		}
 	}
-	fmt.Printf("IsTrustedIP final false\n")
 	return false
 }
 
@@ -167,6 +146,7 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 		return StaffMember{}, err
 	}
 	member.Rut = normalized
+	member.UpdatedAt = time.Now()
 
 	// If Id provided, try update
 	if member.Id != "" {
@@ -179,6 +159,7 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 			existing.Rut = member.Rut
 			existing.IsActive = member.IsActive
 			existing.UserId = member.UserId
+			existing.UpdatedAt = member.UpdatedAt
 			if err := m.db.Update(&existing, orm.Eq("id", existing.Id), orm.Eq("tenant_id", existing.TenantId)); err != nil {
 				return StaffMember{}, err
 			}
@@ -196,6 +177,7 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 		// Update existing
 		existing.Name = member.Name
 		existing.IsActive = member.IsActive
+		existing.UpdatedAt = member.UpdatedAt
 		if member.UserId != "" {
 			existing.UserId = member.UserId
 		}
