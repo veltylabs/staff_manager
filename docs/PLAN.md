@@ -2,8 +2,9 @@
 PLAN: "feat: specialty and role on a staff member, plus the StaffExists port"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 17733230379642182941
+PR: https://github.com/veltylabs/staff_manager/pull/1
 ---
 
 > This plan is dispatched via the CodeJob workflow. See skill: **agents-workflow**.
