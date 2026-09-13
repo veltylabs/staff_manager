@@ -28,9 +28,9 @@ func (p *mockPublisher) Publish(e events.Event) { p.Events = append(p.Events, e)
 
 var _ events.Publisher = (*mockPublisher)(nil)
 
-// fakeDevices is the DeviceReader test double: an in-memory ip->deviceID map,
-// standing in for the cross-module read staff_manager makes into
-// device_manager over the real app's composition root.
+// fakeDevices es el doble de prueba de DeviceReader: un mapa en memoria ip->deviceID,
+// que representa la lectura entre módulos que staff_manager realiza a
+// device_manager a través de la raíz de composición de la aplicación real.
 type fakeDevices struct{ byIP map[string]string }
 
 func (f *fakeDevices) FindByIP(ip string) (string, bool) {
@@ -40,10 +40,10 @@ func (f *fakeDevices) FindByIP(ip string) (string, bool) {
 
 var _ staffmanager.DeviceReader = (*fakeDevices)(nil)
 
-// identityValidateRUT is the test double for Deps.ValidateRUT: passes any
-// non-empty value through unchanged, rejecting only the literal "bad" — the
-// real checksum algorithm lives in webtyp.com/auth/trusted_ip and is
-// deliberately not imported here (module whitelist).
+// identityValidateRUT es el doble de prueba para Deps.ValidateRUT: transmite cualquier
+// valor no vacío sin cambios, rechazando únicamente el literal "bad" — el
+// algoritmo de suma de verificación real vive en webtyp.com/auth/trusted_ip y se
+// omite deliberadamente aquí (lista blanca del módulo).
 func identityValidateRUT(raw string) (string, error) {
 	if raw == "bad" {
 		return "", fmt.Err("staff_manager/tests: invalid rut")

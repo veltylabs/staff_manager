@@ -6,9 +6,9 @@ import (
 	staffmanager "github.com/veltylabs/staff_manager"
 )
 
-// The port appointment_booking declares on its own side. Redeclared locally on
-// purpose: this repository must not depend on a scheduling module to prove it
-// satisfies a structural interface.
+// El puerto que appointment_booking declara en su propio lado. Redeclarado localmente a
+// propósito: este repositorio no debe depender de un módulo de programación para probar que
+// satisface una interfaz estructural.
 type staffReader interface {
 	StaffExists(tenantId, staffId string) (bool, error)
 }
@@ -127,7 +127,7 @@ func TestUpsertStaff_UpdateByIDKeepsSpecialty(t *testing.T) {
 		t.Fatalf("UpsertStaff: %v", err)
 	}
 
-	// Update path A: by ID
+	// Ruta de actualización A: por ID
 	updated, err := m.UpsertStaff(staffmanager.StaffMember{
 		Id:        created.Id,
 		UserId:    "user-1",
@@ -165,7 +165,7 @@ func TestUpsertStaff_UpdateByRutKeepsSpecialty(t *testing.T) {
 		t.Fatalf("UpsertStaff: %v", err)
 	}
 
-	// Update path B: without ID, matching tenant+RUT
+	// Ruta de actualización B: sin ID, coincidiendo tenant+RUT
 	updated, err := m.UpsertStaff(staffmanager.StaffMember{
 		UserId:    "user-1",
 		Rut:       "12345678-5",

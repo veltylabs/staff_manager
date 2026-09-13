@@ -1,40 +1,40 @@
 # staff_manager
 <img src="docs/img/badges.svg">
 
-Staff management module for the Velty ecosystem: tenant-scoped registry linking users (via RUT) to devices, and carrying their specialty and role.
+Módulo de gestión de personal para el ecosistema Velty: registro delimitado por tenant que vincula usuarios (mediante RUT) a dispositivos, y almacena su especialidad y rol.
 
-## Ports this module satisfies
+## Puertos que satisface este módulo
 
-- `IsTrustedIP(userID, ip string) bool` (`auth.TrustedIPStore`): Answers whether `ip` belongs to a device assigned to `userID` for LAN RUT login.
-- `StaffExists(tenantID, staffID string) (bool, error)` (`StaffReader`): Answers whether a staff member exists and belongs to the given tenant. Returns `(false, nil)` when missing, reserving non-nil errors for genuine storage failures.
+- `IsTrustedIP(userID, ip string) bool` (`auth.TrustedIPStore`): Responde si la IP pertenece a un dispositivo asignado a `userID` para inicio de sesión por RUT en LAN.
+- `StaffExists(tenantID, staffID string) (bool, error)` (`StaffReader`): Responde si un miembro del personal existe y pertenece al tenant indicado. Retorna `(false, nil)` cuando no existe, reservando errores no nulos para fallos reales de almacenamiento.
 
-## Ops
+## Operaciones (Ops)
 
-| Op | Action | Resource |
+| Op | Acción | Recurso |
 |---|---|---|
 | `list_staff` | read | `staff_manager` |
 | `get_staff` | read | `staff_manager` |
 | `upsert_staff` | create/update | `staff_manager` |
 | `delete_staff` | delete | `staff_manager` |
 
-## Schema
+## Esquema
 
 ### `StaffMember`
 
-- `id`: string (primary key)
-- `tenant_id`: string (required)
-- `user_id`: string (required)
-- `rut`: string (required, RUT)
-- `name`: string (required)
-- `specialty`: string (free text, optional; e.g. "Radiología")
-- `role`: string (free text, optional; descriptive job title such as "Médico", never an authorization input)
-- `is_active`: bool (required)
-- `updated_at`: int64 (timestamp)
+- `id`: string (clave primaria)
+- `tenant_id`: string (requerido)
+- `user_id`: string (requerido)
+- `rut`: string (requerido, RUT)
+- `name`: string (requerido)
+- `specialty`: string (texto libre, opcional; ej. "Radiología")
+- `role`: string (texto libre, opcional; título de trabajo descriptivo como "Médico", nunca una entrada de autorización)
+- `is_active`: bool (requerido)
+- `updated_at`: int64 (marca temporal)
 
-## Migration
+## Migración
 
-`migrate.Migrate` uses `ddl.Sync` to perform additive migrations. It creates missing tables and adds any missing columns to existing tables safely.
+`migrate.Migrate` utiliza `ddl.Sync` para realizar migraciones aditivas. Crea las tablas faltantes y agrega las columnas faltantes a las tablas existentes de forma segura.
 
-## Quick Start
+## Inicio rápido
 
-Same pattern as `device_manager`.
+Mismo patrón que `device_manager`.

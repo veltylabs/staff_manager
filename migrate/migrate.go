@@ -7,10 +7,10 @@ import (
 )
 
 func Migrate(conn ddl.Execer, ddlCompiler ddl.Compiler) error {
-	// Sync, not CreateTable: CreateTable compiles to CREATE TABLE IF NOT
-	// EXISTS and is a no-op against a table that already exists, so a column
-	// added to a model would never reach a deployed database. Sync creates the
-	// table when it is absent and adds the missing columns when it is not.
+	// Sync, no CreateTable: CreateTable se compila a CREATE TABLE IF NOT
+	// EXISTS y es una no-operación contra una tabla que ya existe, por lo que una columna
+	// agregada a un modelo nunca llegaría a una base de datos desplegada. Sync crea la
+	// tabla cuando está ausente y agrega las columnas faltantes cuando no lo está.
 	return ddl.New(conn, ddlCompiler).Sync(
 		&staffmanager.StaffMember{},
 		&staffmanager.StaffDevice{},

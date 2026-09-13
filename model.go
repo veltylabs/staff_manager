@@ -14,9 +14,9 @@ var StaffMemberModel = model.Definition{
 		{Name: "user_id", Type: model.Text(), NotNull: true},
 		{Name: "rut", Type: input.Text(), NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}},
 		{Name: "name", Type: input.Text(), NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}},
-		// Specialty and role are free text values without enums or slugs. Role is
-		// purely descriptive (e.g., job title) and never an authorization input.
-		// Both fields are optional so existing records remain valid.
+		// Specialty y role son valores de texto libre sin enums ni slugs. Role es
+		// puramente descriptivo (ej. título de trabajo) y nunca una entrada de autorización.
+		// Ambos campos son opcionales para que los registros existentes sigan siendo válidos.
 		{Name: "specialty", Type: input.Text(), Permitted: model.Permitted{Maximum: 120}},
 		{Name: "role", Type: input.Text(), Permitted: model.Permitted{Maximum: 60}},
 		{Name: "is_active", Type: input.Checkbox(), NotNull: true},

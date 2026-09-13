@@ -91,14 +91,14 @@ func (m *Module) opDeleteStaff(ctx router.Context) {
 		ctx.WriteStatus(400)
 		return
 	}
-	// Delete staff_device assignments first then staff
+	// Eliminar asignaciones staff_device primero, luego staff
 	var s StaffMember
 	s.Id = args.Id
 	s.TenantId = args.TenantId
 	if s.TenantId == "" {
 		s.TenantId = m.tenantID
 	}
-	// Need to fetch then delete
+	// Se necesita obtener y luego eliminar
 	existing, err := m.GetStaff(s.TenantId, s.Id)
 	if err != nil {
 		ctx.WriteStatus(404)
@@ -108,7 +108,7 @@ func (m *Module) opDeleteStaff(ctx router.Context) {
 		ctx.WriteStatus(500)
 		return
 	}
-	// also delete assignments
+	// también eliminar asignaciones
 	var sd StaffDevice
 	_ = m.db.Delete(&sd, orm.Eq("staff_id", existing.Id))
 	ctx.WriteStatus(200)
