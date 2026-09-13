@@ -95,6 +95,8 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 			// Update
 			existing.Name = member.Name
 			existing.Rut = member.Rut
+			existing.Specialty = member.Specialty
+			existing.Role = member.Role
 			existing.IsActive = member.IsActive
 			existing.UserId = member.UserId
 			existing.UpdatedAt = member.UpdatedAt
@@ -114,6 +116,8 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 	if err == nil {
 		// Update existing
 		existing.Name = member.Name
+		existing.Specialty = member.Specialty
+		existing.Role = member.Role
 		existing.IsActive = member.IsActive
 		existing.UpdatedAt = member.UpdatedAt
 		if member.UserId != "" {
@@ -168,6 +172,29 @@ func (m *Module) GetStaff(tenantID, id string) (StaffMember, error) {
 	return s, nil
 }
 
+// StaffExists reports whether a staff member with this id belongs to this
+// tenant. It satisfies the narrow StaffReader port that a scheduling module
+// declares on its own side (StaffExists(tenantId, staffId) (bool, error)) —
+// structurally, with no adapter and no import in either direction.
+//
+// A missing row is (false, nil), NOT an error: "this id is not one of ours" is
+// the answer the caller asked for. Only a real storage failure returns a
+// non-nil error, so a caller can never mistake a dead database for a clean
+// "no".
+func (m *Module) StaffExists(tenantID, staffID string) (bool, error) {
+	if tenantID == "" || staffID == "" {
+		return false, nil
+	}
+	_, err := m.GetStaff(tenantID, staffID)
+	if err != nil {
+		if err == ErrNotFound {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
 func (m *Module) ListStaff(tenantID string) ([]StaffMember, error) {
 	qb := m.db.Query(&StaffMember{}).Where("tenant_id").Eq(tenantID)
 	results, err := ReadAllStaffMember(qb)
@@ -179,13 +206,4 @@ func (m *Module) ListStaff(tenantID string) ([]StaffMember, error) {
 		out[i] = *v
 	}
 	return out, nil
-}
-
-func ReadAllStaffMember(qb *orm.QB) (StaffMemberList, error) {
-	var results StaffMemberList
-	err := qb.ReadAll(
-		func() model.Model { return &StaffMember{} },
-		func(m model.Model) { results = append(results, m.(*StaffMember)) },
-	)
-	return results, err
 }

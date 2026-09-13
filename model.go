@@ -6,11 +6,6 @@ import (
 	"webtyp.com/model"
 )
 
-var (
-	BaseBool_FieldBool = model.Bool()
-	BaseInt_FieldInt   = model.Int()
-)
-
 var StaffMemberModel = model.Definition{
 	Name: "staff_member",
 	Fields: model.Fields{
@@ -19,8 +14,13 @@ var StaffMemberModel = model.Definition{
 		{Name: "user_id", Type: model.Text(), NotNull: true},
 		{Name: "rut", Type: input.Text(), NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}},
 		{Name: "name", Type: input.Text(), NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}},
+		// Specialty and role are free text values without enums or slugs. Role is
+		// purely descriptive (e.g., job title) and never an authorization input.
+		// Both fields are optional so existing records remain valid.
+		{Name: "specialty", Type: input.Text(), Permitted: model.Permitted{Maximum: 120}},
+		{Name: "role", Type: input.Text(), Permitted: model.Permitted{Maximum: 60}},
 		{Name: "is_active", Type: input.Checkbox(), NotNull: true},
-		{Name: "updated_at", Type: BaseInt_FieldInt, OmitEmpty: true},
+		{Name: "updated_at", Type: model.Int(), OmitEmpty: true},
 	},
 }
 

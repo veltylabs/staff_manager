@@ -10,10 +10,7 @@ require (
 	webtyp.com/model v0.1.9
 	webtyp.com/orm v0.12.3
 	webtyp.com/router v0.1.38
+	webtyp.com/storage v0.0.8
+	webtyp.com/time v0.5.6
 	webtyp.com/view v0.5.10
-)
-
-require (
-	webtyp.com/storage v0.0.8 // indirect
-	webtyp.com/time v0.5.6 // indirect
 )
