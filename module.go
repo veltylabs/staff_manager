@@ -49,172 +49,29 @@ func New(db *orm.DB, deps Deps) (*Module, error) {
 	}, nil
 }
 
-// deviceProbe is a minimal read model for the device table, used only as
-// fallback in IsTrustedIP when DeviceReader is unavailable or fails. It
-// mirrors the device table's columns needed for the check.
-type deviceProbe struct {
-	Id        string
-	TenantId  string
-	Name      string
-	Ip        string
-	Type      string
-	Location  string
-	IsActive  bool
-	UpdatedAt int64
-}
-
-func (m *deviceProbe) ModelName() string { return "device" }
-func (m *deviceProbe) Schema() []model.Field {
-	return []model.Field{
-		{Name: "id", Type: model.Text()},
-		{Name: "tenant_id", Type: model.Text()},
-		{Name: "name", Type: model.Text()},
-		{Name: "ip", Type: model.Text()},
-		{Name: "type", Type: model.Text()},
-		{Name: "location", Type: model.Text()},
-		{Name: "is_active", Type: BaseBool_FieldBool},
-		{Name: "updated_at", Type: BaseInt_FieldInt},
-	}
-}
-func (m *deviceProbe) Pointers() []any {
-	return []any{&m.Id, &m.TenantId, &m.Name, &m.Ip, &m.Type, &m.Location, &m.IsActive, &m.UpdatedAt}
-}
-func (m *deviceProbe) IsNil() bool { return m == nil }
-func (m *deviceProbe) EncodeFields(w model.FieldWriter) {
-	w.String("id", m.Id)
-	w.String("tenant_id", m.TenantId)
-	w.String("name", m.Name)
-	w.String("ip", m.Ip)
-	w.String("type", m.Type)
-	if m.Location != "" {
-		w.String("location", m.Location)
-	}
-	w.Bool("is_active", m.IsActive)
-	if m.UpdatedAt != 0 {
-		w.Int("updated_at", m.UpdatedAt)
-	}
-}
-func (m *deviceProbe) DecodeFields(r model.FieldReader) {
-	if v, ok := r.String("id"); ok {
-		m.Id = v
-	}
-	if v, ok := r.String("tenant_id"); ok {
-		m.TenantId = v
-	}
-	if v, ok := r.String("name"); ok {
-		m.Name = v
-	}
-	if v, ok := r.String("ip"); ok {
-		m.Ip = v
-	}
-	if v, ok := r.String("type"); ok {
-		m.Type = v
-	}
-	if v, ok := r.String("location"); ok {
-		m.Location = v
-	}
-	if v, ok := r.Bool("is_active"); ok {
-		m.IsActive = v
-	}
-	if v, ok := r.Int("updated_at"); ok {
-		m.UpdatedAt = v
-	}
-}
-func (m *deviceProbe) Validate(action byte) error { return nil }
-
-func normalizeIP(ip string) string {
-	// Workaround for buggy auth.ClientIP that splits "[::1]:port" on ":" and returns "[".
-	// Also treat 127.0.0.1 and ::1 as equivalent for localhost.
-	if ip == "[" {
-		return "::1"
-	}
-	if len(ip) > 0 && ip[0] == '[' {
-		if idx := fmt.Index(ip, "]"); idx != -1 {
-			return ip[1:idx]
-		}
-	}
-	// Trim brackets if present
-	if len(ip) > 2 && ip[0] == '[' && ip[len(ip)-1] == ']' {
-		return ip[1 : len(ip)-1]
-	}
-	return ip
-}
-
-func ipsEqual(a, b string) bool {
-	na := normalizeIP(a)
-	nb := normalizeIP(b)
-	if na == nb {
-		return true
-	}
-	// localhost equivalence
-	if (na == "127.0.0.1" && nb == "::1") || (na == "::1" && nb == "127.0.0.1") {
-		return true
-	}
-	return false
-}
-
-// IsTrustedIP implements auth.TrustedIPStore
+// IsTrustedIP implements auth.TrustedIPStore. The single question login
+// asks: is ip a device assigned to userID? Answered through the injected
+// DeviceReader only — never a direct read of device_manager's own table
+// (see Deps.Devices' doc comment; the module whitelist forbids importing a
+// sibling module's storage shape).
 func (m *Module) IsTrustedIP(userID, ip string) bool {
-	ip = normalizeIP(ip)
 	if m.db == nil || userID == "" || ip == "" {
 		return false
 	}
 	var staff StaffMember
-	qb := m.db.Query(&staff).Where("user_id").Eq(userID).Where("tenant_id").Eq(m.tenantID)
-	err := qb.ReadOne()
-	if err != nil || !staff.IsActive {
+	qb := m.db.Query(&staff).Where("user_id").Eq(userID).Where("tenant_id").Eq(m.tenantID).Where("is_active").Eq(true)
+	if err := qb.ReadOne(); err != nil {
 		return false
 	}
-	if m.devices != nil {
-		if deviceID, ok := m.devices.FindByIP(ip); ok {
-			var sd StaffDevice
-			qb2 := m.db.Query(&sd).Where("staff_id").Eq(staff.Id).Where("device_id").Eq(deviceID)
-			if qb2.ReadOne() == nil {
-				return true
-			}
-		}
-		// Also try normalized variants for localhost
-		for _, altIP := range []string{"127.0.0.1", "::1"} {
-			if ipsEqual(ip, altIP) {
-				if deviceID, ok := m.devices.FindByIP(altIP); ok {
-					var sd StaffDevice
-					qb2 := m.db.Query(&sd).Where("staff_id").Eq(staff.Id).Where("device_id").Eq(deviceID)
-					if qb2.ReadOne() == nil {
-						return true
-					}
-				}
-			}
-		}
-	}
-	// Fallback: scan assigned devices and compare IP via direct device query
-	var list StaffDeviceList
-	if err := m.db.Query(&StaffDevice{}).Where("staff_id").Eq(staff.Id).ReadAll(
-		func() model.Model { return &StaffDevice{} },
-		func(mm model.Model) { list = append(list, mm.(*StaffDevice)) },
-	); err != nil {
+	if m.devices == nil {
 		return false
 	}
-	for _, sd := range list {
-		if m.devices != nil {
-			if did, ok := m.devices.FindByIP(ip); ok && did == sd.DeviceId {
-				return true
-			}
-			for _, altIP := range []string{"127.0.0.1", "::1"} {
-				if ipsEqual(ip, altIP) {
-					if did, ok := m.devices.FindByIP(altIP); ok && did == sd.DeviceId {
-						return true
-					}
-				}
-			}
-		}
-		var dev deviceProbe
-		if err := m.db.Query(&dev).Where("id").Eq(sd.DeviceId).Where("tenant_id").Eq(m.tenantID).ReadOne(); err == nil {
-			if ipsEqual(dev.Ip, ip) && dev.IsActive {
-				return true
-			}
-		}
+	deviceID, ok := m.devices.FindByIP(ip)
+	if !ok {
+		return false
 	}
-	return false
+	var sd StaffDevice
+	return m.db.Query(&sd).Where("staff_id").Eq(staff.Id).Where("device_id").Eq(deviceID).ReadOne() == nil
 }
 
 func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
