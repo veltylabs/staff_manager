@@ -7,12 +7,12 @@ import (
 )
 
 func Migrate(conn ddl.Execer, ddlCompiler ddl.Compiler) error {
-	d := ddl.New(conn, ddlCompiler)
-	if err := d.CreateTable(&staffmanager.StaffMember{}); err != nil {
-		return err
-	}
-	if err := d.CreateTable(&staffmanager.StaffDevice{}); err != nil {
-		return err
-	}
-	return nil
+	// Sync, no CreateTable: CreateTable se compila a CREATE TABLE IF NOT
+	// EXISTS y es una no-operación contra una tabla que ya existe, por lo que una columna
+	// agregada a un modelo nunca llegaría a una base de datos desplegada. Sync crea la
+	// tabla cuando está ausente y agrega las columnas faltantes cuando no lo está.
+	return ddl.New(conn, ddlCompiler).Sync(
+		&staffmanager.StaffMember{},
+		&staffmanager.StaffDevice{},
+	)
 }

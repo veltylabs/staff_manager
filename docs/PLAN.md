@@ -2,26 +2,27 @@
 PLAN: "feat: specialty and role on a staff member, plus the StaffExists port"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 17733230379642182941
+PR: https://github.com/veltylabs/staff_manager/pull/1
 ---
 
-> This plan is dispatched via the CodeJob workflow. See skill: **agents-workflow**.
+> Este plan se distribuye a través del flujo de trabajo CodeJob. Ver habilidad: **agents-workflow**.
 
-# Plan — `specialty`, `role`, and `StaffExists`
+# Plan — `specialty`, `role`, y `StaffExists`
 
-You are an agent with **no prior context** and you have **only this repository**
-(`github.com/veltylabs/staff_manager`). Everything you need is inline.
+Eres un agente sin **contexto previo** y tienes **únicamente este repositorio**
+(`github.com/veltylabs/staff_manager`). Todo lo que necesitas está en línea.
 
-## 1. The problem
+## 1. El problema
 
-Two gaps, both discovered while wiring this module next to
-`github.com/veltylabs/appointment_booking` in a clinic application.
+Dos brechas, ambas descubiertas al conectar este módulo junto a
+`github.com/veltylabs/appointment_booking` en una aplicación de clínica.
 
-### 1.1 Nothing can ask whether a staff member exists
+### 1.1 Nada puede consultar si un miembro del personal existe
 
-`appointment_booking` refuses to create a reservation for a professional it
-cannot verify. It declares the question as a narrow port it does not import:
+`appointment_booking` rechaza crear una reserva para un profesional que no puede
+verificar. Declara la pregunta como un puerto estrecho que no importa:
 
 ```go
 // appointment_booking/service.go
@@ -31,165 +32,161 @@ type StaffReader interface {
 }
 ```
 
-and its own README documents the expected wiring as
-`Staff: staffmodule.New(db)  // implements StaffReader` — that is, the staff
-module itself satisfies the port structurally, with no adapter.
+y su propio README documenta la conexión esperada como
+`Staff: staffmodule.New(db)  // implementa StaffReader`, es decir, el propio módulo
+de personal satisface el puerto estructuralmente, sin adaptador.
 
-`*Module` does not have that method. Every application wanting to book an
-appointment must therefore write the same six-line adapter over `GetStaff`,
-comparing `ErrNotFound` by hand. That adapter is application code doing a
-module's job, and it will be written once per application.
+`*Module` no posee ese método actualmente. Cada aplicación que desee reservar una
+cita debe escribir el mismo adaptador de seis líneas sobre `GetStaff`,
+comparando `ErrNotFound` manualmente. Ese adaptador es código de aplicación haciendo
+el trabajo del módulo, y se escribirá una vez por aplicación.
 
-### 1.2 A staff member has no specialty and no role
+### 1.2 Un miembro del personal no tiene especialidad ni rol
 
-`StaffMemberModel` today carries `id`, `tenant_id`, `user_id`, `rut`, `name`,
-`is_active`, `updated_at`. There is nowhere to record that someone is a
-radiologist.
+`StaffMemberModel` hoy en día contiene `id`, `tenant_id`, `user_id`, `rut`, `name`,
+`is_active`, `updated_at`. No hay dónde registrar que alguien es radiólogo.
 
-The consequence is already visible in the ecosystem: the sibling module
-`github.com/veltylabs/clinical_encounter` writes a
-`doctor_specialty_snapshot` column on every medical record, and there is no
-source for that value — it is typed by hand at the point of use, per record,
-with nothing keeping two spellings of the same specialty together. A booking
-screen that wants to offer "who does ultrasound" has nothing to group by.
+La consecuencia ya es visible en el ecosistema: el módulo hermano
+`github.com/veltylabs/clinical_encounter` escribe una columna
+`doctor_specialty_snapshot` en cada registro médico, y no hay fuente para ese valor;
+se escribe a mano en el punto de uso, por registro, sin nada que mantenga unificadas
+dos escrituras de la misma especialidad. Una pantalla de reservas que desee ofrecer
+"quién realiza ecografías" no tiene por qué agrupar.
 
-## 2. Design gate
+## 2. Puerta de diseño
 
-### Prior art
+### Arte previo
 
-- **Django** `Model.objects.filter(...).exists()` and **Rails**
-  `Model.exists?(id)` both expose existence as a first-class boolean query,
-  separate from fetching the row, precisely because callers that only need the
-  answer should not pay for or handle a full record.
-- **Ent** (Go) generates `Query().Exist(ctx)` per entity for the same reason.
-- All three return only a boolean plus an error. We match that shape exactly.
-  We differ in one way: ours is tenant-scoped (`tenantId` is the first
-  argument), because in this ecosystem no read is ever global — every existing
-  method on this module already takes the tenant first.
+- **Django** `Model.objects.filter(...).exists()` y **Rails**
+  `Model.exists?(id)` exponen la existencia como una consulta booleana de primer orden,
+  separada de obtener la fila, precisamente porque los llamantes que solo necesitan la
+  respuesta no deben pagar ni procesar un registro completo.
+- **Ent** (Go) genera `Query().Exist(ctx)` por entidad por la misma razón.
+- Los tres retornan únicamente un booleano más un error. Coincidimos exactamente con esa forma.
+  Diferimos en una cosa: el nuestro está delimitado por tenant (`tenantId` es el primer
+  argumento), porque en este ecosistema ninguna lectura es global; cada método existente
+  en este módulo ya recibe el tenant primero.
 
-For the two new fields there is no interesting prior art to differ from: they
-are plain columns on the module's own record.
+Para los dos campos nuevos no hay arte previo interesante del cual diferir: son
+columnas simples en el propio registro del módulo.
 
-### Novice-name test
+### Prueba del nombre para principiantes
 
-- "Does this staff exist in this tenant?" → `StaffExists(tenantId, staffId)`.
-  The port `appointment_booking` declares already uses this exact name and
-  signature; choosing a different one would mean every consumer writes an
-  adapter, which is the defect being fixed.
-- "The staff member's specialty" → `member.Specialty`.
-- "The staff member's role" → `member.Role`.
+- "¿Existe este personal en este tenant?" → `StaffExists(tenantId, staffId)`.
+  El puerto que declara `appointment_booking` ya utiliza este nombre y firma exactos;
+  elegir uno diferente significaría que cada consumidor debe escribir un adaptador, que es el
+  defecto que se está corrigiendo.
+- "La especialidad del miembro del personal" → `member.Specialty`.
+- "El rol del miembro del personal" → `member.Role`.
 
-### Complexity ledger
+### Libro mayor de complejidad
 
-| | change |
+| | cambio |
 |---|---|
-| Concepts | `+0` — existence and specialty are both already concepts in this domain; neither introduces a new one |
-| Files | `+1` (`tests/staff_test.go`); `model.go`, `module.go`, `migrate/migrate.go` are edited |
-| Call-site lines | `−6 per consuming application` (the hand-written `StaffReader` adapter disappears), `+1` here |
-| Ways to do it | `−1` — "is this professional real?" had zero supported answers and one copied one; now it has one |
-| Net | negative |
+| Conceptos | `+0` — la existencia y la especialidad ya son conceptos en este dominio; ninguno introduce uno nuevo |
+| Archivos | `+1` (`tests/staff_test.go`); `model.go`, `module.go`, `migrate/migrate.go` son editados |
+| Líneas en sitios de llamada | `−6 por aplicación consumidora` (el adaptador `StaffReader` escrito a mano desaparece), `+1` aquí |
+| Formas de hacerlo | `−1` — "¿es real este profesional?" tenía cero respuestas soportadas y una copiada; ahora tiene una |
+| Neto | negativo |
 
-### Where it belongs
+### Dónde pertenece
 
-Here. `StaffExists` is a question about this module's own table, and the two
-fields are attributes of this module's own record. Putting the specialty
-anywhere else — a lookup table in the catalog, a column on the clinical
-record — is what produced the unsourced `doctor_specialty_snapshot` in the
-first place.
+Aquí. `StaffExists` es una pregunta sobre la propia tabla de este módulo, y los dos
+campos son atributos del propio registro de este módulo. Poner la especialidad en
+cualquier otro lugar —una tabla de búsqueda en el catálogo, una columna en el registro
+clínico— es lo que produjo `doctor_specialty_snapshot` sin fuente en primer lugar.
 
-### What it deletes
+### Qué elimina
 
-Nothing in this repository; this is additive. What it makes deletable is the
-per-application `StaffReader` adapter, in those applications.
+Nada en este repositorio; esto es aditivo. Lo que permite eliminar es el adaptador
+`StaffReader` por aplicación, en esas aplicaciones.
 
-## 3. Decisions already taken — do not revisit
+## 3. Decisiones ya tomadas — no reevaluar
 
-1. **`specialty` is free text (`input.Text()`), not a slug and not an enum.**
-   A slug column would need a slug→label table, and the only existing instance
-   of that in this ecosystem is a hardcoded Spanish `switch` in a demo — an
-   application hardcoding data the database could supply. A consumer that wants
-   to group professionals by specialty groups by the distinct values it reads
-   back from `list_staff`. This module renders no human language of its own.
-2. **`role` is free text too**, and it is **not** a permission. Authorization in
-   this ecosystem is `webtyp.com/rbac`, keyed by user, resource and action.
-   `role` here is a descriptive job title shown to a person ("Médico",
-   "TENS", "Administrativo"). Do not wire it to anything that grants access.
-3. **Both fields are optional** (no `NotNull`). Existing rows have neither, and
-   a required column would break every current record.
-4. **`Item()` is not touched.** `StaffMember.Item()` currently returns
-   `Description: m.Rut`, and an existing staff screen renders that. Changing it
-   to show the specialty is a UI decision for the consuming application, not
-   this plan.
+1. **`specialty` es texto libre (`input.Text()`), no un slug y no un enum.**
+   Una columna de tipo slug necesitaría una tabla slug→etiqueta, y la única instancia existente
+   de eso en este ecosistema es un `switch` en español codificado en una demo —una aplicación
+   codificando datos que la base de datos podría proveer. Un consumidor que desee agrupar
+   profesionales por especialidad agrupa por los valores distintos que lee desde `list_staff`.
+   Este módulo no procesa ningún lenguaje humano propio.
+2. **`role` también es texto libre**, y **no** es un permiso. La autorización en
+   este ecosistema es `webtyp.com/rbac`, claveada por usuario, recurso y acción.
+   `role` aquí es un título de trabajo descriptivo mostrado a una persona ("Médico",
+   "TENS", "Administrativo"). No lo conecte a nada que otorgue acceso.
+3. **Ambos campos son opcionales** (sin `NotNull`). Las filas existentes no tienen ninguno, y
+   una columna requerida rompería todos los registros actuales.
+4. **`Item()` no se modifica.** `StaffMember.Item()` actualmente retorna
+   `Description: m.Rut`, y una pantalla de personal existente renderiza eso. Cambiarlo
+   para mostrar la especialidad es una decisión de interfaz para la aplicación consumidora, no
+   de este plan.
 
-## 4. Stages
+## 4. Etapas
 
-### Stage 1 — the two fields, in `model.go`
+### Etapa 1 — los dos campos, en `model.go`
 
-Add both to `StaffMemberModel.Fields`, **immediately after `name`** and before
-`is_active`:
+Agregar ambos a `StaffMemberModel.Fields`, **inmediatamente después de `name`** y antes
+de `is_active`:
 
 ```go
 {Name: "specialty", Type: input.Text(), Permitted: model.Permitted{Maximum: 120}},
 {Name: "role", Type: input.Text(), Permitted: model.Permitted{Maximum: 60}},
 ```
 
-Write a comment above them recording decision 3.1 and 3.2 from this plan —
-that the values are free text on purpose, and that `role` is descriptive and
-never an authorization input. That reasoning must outlive this plan file.
+Escribir un comentario sobre ellos registrando las decisiones 3.1 y 3.2 de este plan —
+que los valores son texto libre a propósito, y que `role` es descriptivo y
+nunca una entrada de autorización. Ese razonamiento debe perdurar más allá de este archivo de plan.
 
-Regenerate `model_orm.go` with `ormc`. **Never hand-edit `model_orm.go`.** The
-generated struct gains `Specialty` and `Role` (pure casing of the column
-names).
+Regenerar `model_orm.go` con `ormc`. **Nunca editar `model_orm.go` a mano.** La
+estructura generada obtiene `Specialty` y `Role` (mayúsculas directas de los nombres de columna).
 
-### Stage 2 — carry the fields through `UpsertStaff`, in `module.go`
+### Etapa 2 — transmitir los campos a través de `UpsertStaff`, en `module.go`
 
-`UpsertStaff` has **two** update paths, and both copy fields field-by-field
-onto an `existing` record. A new column added to only one of them silently
-disappears on the other path.
+`UpsertStaff` tiene **dos** rutas de actualización, y ambas copian campos campo por campo
+en un registro `existing`. Un nuevo campo agregado a solo una de ellas desaparece silenciosamente
+en la otra ruta.
 
-**Path A — update by id** (`if member.Id != ""`, after the `ReadOne` succeeds):
+**Ruta A — actualización por id** (`if member.Id != ""`, después de que `ReadOne` tiene éxito):
 
 ```go
 existing.Name = member.Name
 existing.Rut = member.Rut
-existing.Specialty = member.Specialty   // ADD
-existing.Role = member.Role             // ADD
+existing.Specialty = member.Specialty   // AGREGAR
+existing.Role = member.Role             // AGREGAR
 existing.IsActive = member.IsActive
 existing.UserId = member.UserId
 existing.UpdatedAt = member.UpdatedAt
 ```
 
-**Path B — update by tenant+rut** (the block after
-`Where("tenant_id").Eq(...).Where("rut").Eq(...)` succeeds):
+**Ruta B — actualización por tenant+rut** (el bloque después de que
+`Where("tenant_id").Eq(...).Where("rut").Eq(...)` tiene éxito):
 
 ```go
 existing.Name = member.Name
-existing.Specialty = member.Specialty   // ADD
-existing.Role = member.Role             // ADD
+existing.Specialty = member.Specialty   // AGREGAR
+existing.Role = member.Role             // AGREGAR
 existing.IsActive = member.IsActive
 existing.UpdatedAt = member.UpdatedAt
 ```
 
-The create path needs no change — it writes `member` whole.
+La ruta de creación no necesita cambios — escribe `member` completo.
 
-**Acceptance:** `grep -n "existing.Specialty" module.go` → exactly 2 matches.
-Same for `existing.Role`.
+**Aceptación:** `grep -n "existing.Specialty" module.go` → exactamente 2 coincidencias.
+Igual para `existing.Role`.
 
-### Stage 3 — `StaffExists`, in `module.go`
+### Etapa 3 — `StaffExists`, en `module.go`
 
-Add immediately after `GetStaff`, since it is the same query narrowed to a
-boolean:
+Agregar inmediatamente después de `GetStaff`, dado que es la misma consulta reducida a un
+booleano:
 
 ```go
-// StaffExists reports whether a staff member with this id belongs to this
-// tenant. It satisfies the narrow StaffReader port that a scheduling module
-// declares on its own side (StaffExists(tenantId, staffId) (bool, error)) —
-// structurally, with no adapter and no import in either direction.
+// StaffExists reporta si un miembro del personal con este id pertenece a este
+// tenant. Satisface el puerto estrecho StaffReader que un módulo de programación
+// declara en su propio lado (StaffExists(tenantId, staffId) (bool, error)) —
+// estructuralmente, sin adaptador y sin importación en ninguna dirección.
 //
-// A missing row is (false, nil), NOT an error: "this id is not one of ours" is
-// the answer the caller asked for. Only a real storage failure returns a
-// non-nil error, so a caller can never mistake a dead database for a clean
-// "no".
+// Una fila ausente es (false, nil), NO un error: "este id no es nuestro" es
+// la respuesta que el llamante solicitó. Solo un fallo real de almacenamiento retorna un
+// error no nulo, para que un llamante nunca confunda una base de datos caída con un "no" limpio.
 func (m *Module) StaffExists(tenantID, staffID string) (bool, error) {
 	if tenantID == "" || staffID == "" {
 		return false, nil
@@ -205,35 +202,34 @@ func (m *Module) StaffExists(tenantID, staffID string) (bool, error) {
 }
 ```
 
-**Anti-footgun.** Do not "optimise" this by inlining the query and returning
-`err == nil`. `GetStaff` is the single place that maps `orm.ErrNotFound` to the
-domain sentinel; a second copy of that mapping is how the two drift. And do not
-collapse the error to a bare `bool` — a caller that cannot tell "absent" from
-"database unreachable" will book an appointment against a staff member it never
-verified.
+**Evitar errores.** No "optimizar" esto haciendo la consulta en línea y retornando
+`err == nil`. `GetStaff` es el único lugar que mapea `orm.ErrNotFound` al
+sentinela de dominio; una segunda copia de ese mapeo es cómo ambos divergen. Y no
+reducir el error a un `bool` simple — un llamante que no puede distinguir "ausente" de
+"base de datos inalcanzable" reservará una cita para un miembro del personal que nunca
+verificó.
 
-### Stage 4 — `migrate/` must ADD COLUMNS, not just create tables
+### Etapa 4 — `migrate/` debe AGREGAR COLUMNAS, no solo crear tablas
 
-This is the stage most likely to be got wrong, because the current code looks
-finished.
+Esta es la etapa con mayor probabilidad de error, porque el código actual parece
+terminado.
 
-`migrate/migrate.go` today calls `CreateTable`, which compiles to
-`CREATE TABLE IF NOT EXISTS`. Against a database where `staff_member` already
-exists — which is every deployment that has ever run — it is a **no-op**, so
-the two new columns would never appear and every write would fail on an unknown
-column.
+`migrate/migrate.go` hoy llama a `CreateTable`, que se compila en
+`CREATE TABLE IF NOT EXISTS`. Contra una base de datos donde `staff_member` ya
+existe —lo cual sucede en cada despliegue que ha funcionado— es una **no-operación**, por lo que
+las dos nuevas columnas nunca aparecerían y cada escritura fallaría por columna desconocida.
 
-`webtyp.com/ddl` already has the right operation: `(*ddl.DB).Sync(models...)`
-emits `CreateTable` and then, for each column in the model that the table does
-not have, an additive `OpAddColumn` — inside a transaction where the backend
-supports one. Replace the body:
+`webtyp.com/ddl` ya tiene la operación correcta: `(*ddl.DB).Sync(models...)`
+emite `CreateTable` y luego, para cada columna en el modelo que la tabla no
+posee, un `OpAddColumn` aditivo — dentro de una transacción cuando el backend lo soporte.
+Reemplazar el cuerpo:
 
 ```go
 func Migrate(conn ddl.Execer, ddlCompiler ddl.Compiler) error {
-	// Sync, not CreateTable: CreateTable compiles to CREATE TABLE IF NOT
-	// EXISTS and is a no-op against a table that already exists, so a column
-	// added to a model would never reach a deployed database. Sync creates the
-	// table when it is absent and adds the missing columns when it is not.
+	// Sync, no CreateTable: CreateTable se compila a CREATE TABLE IF NOT
+	// EXISTS y es una no-operación contra una tabla que ya existe, por lo que una columna
+	// agregada a un modelo nunca llegaría a una base de datos desplegada. Sync crea la
+	// tabla cuando está ausente y agrega las columnas faltantes cuando no lo está.
 	return ddl.New(conn, ddlCompiler).Sync(
 		&staffmanager.StaffMember{},
 		&staffmanager.StaffDevice{},
@@ -241,44 +237,44 @@ func Migrate(conn ddl.Execer, ddlCompiler ddl.Compiler) error {
 }
 ```
 
-`Sync` is additive only — it never drops or narrows a column — so it is safe to
-run repeatedly and safe to run against production.
+`Sync` es únicamente aditivo —nunca elimina ni restringe una columna— por lo que es seguro de
+ejecutar repetidamente y seguro de ejecutar contra producción.
 
-**Anti-footgun.** Sibling modules (`device_manager`, `item_catalog`,
-`clinical_encounter`) still call `CreateTable` in their own `migrate/`
-packages. You have **only this repository**; do not attempt to change them, and
-do not treat their code as the pattern to copy here. The difference is
-deliberate: this is the module adding columns to an existing table.
+**Evitar errores.** Los módulos hermanos (`device_manager`, `item_catalog`,
+`clinical_encounter`) aún llaman a `CreateTable` en sus propios paquetes `migrate/`.
+Tienes **únicamente este repositorio**; no intentes cambiarlos, y
+no trates su código como el patrón a copiar aquí. La diferencia es
+deliberada: este es el módulo agregando columnas a una tabla existente.
 
-### Stage 5 — tests, in `tests/`
+### Etapa 5 — pruebas, en `tests/`
 
-`tests/` currently holds `setup_test.go` and `trust_test.go`. Read
-`setup_test.go` first and reuse its module construction and its fakes — do not
-build a second harness.
+`tests/` actualmente contiene `setup_test.go` y `trust_test.go`. Leer
+`setup_test.go` primero y reutilizar su construcción de módulo y sus fakes — no
+construir un segundo arnés.
 
-New file `tests/staff_test.go`:
+Nuevo archivo `tests/staff_test.go`:
 
-| Test | Asserts |
+| Prueba | Afirma |
 |---|---|
-| `TestStaffExists_True` | an upserted member returns `(true, nil)` |
-| `TestStaffExists_UnknownID` | `(false, nil)` — **not** an error |
-| `TestStaffExists_WrongTenant` | a member of tenant A is `(false, nil)` for tenant B |
-| `TestStaffExists_EmptyArgs` | `("", "")` and `("t1", "")` both `(false, nil)` |
-| `TestUpsertStaff_PersistsSpecialtyAndRole` | create, then `GetStaff`, both fields round-trip |
-| `TestUpsertStaff_UpdateByIDKeepsSpecialty` | update path A changes the specialty and the read-back shows the new value |
-| `TestUpsertStaff_UpdateByRutKeepsSpecialty` | update path B — upsert **without** an `Id`, matching on tenant+rut — changes the specialty and the read-back shows the new value |
+| `TestStaffExists_True` | un miembro insertado/actualizado retorna `(true, nil)` |
+| `TestStaffExists_UnknownID` | `(false, nil)` — **no** es un error |
+| `TestStaffExists_WrongTenant` | un miembro del tenant A es `(false, nil)` para el tenant B |
+| `TestStaffExists_EmptyArgs` | `("", "")` y `("t1", "")` ambos `(false, nil)` |
+| `TestUpsertStaff_PersistsSpecialtyAndRole` | crear, luego `GetStaff`, ambos campos se persisten correctamente |
+| `TestUpsertStaff_UpdateByIDKeepsSpecialty` | ruta de actualización A cambia la especialidad y la lectura muestra el nuevo valor |
+| `TestUpsertStaff_UpdateByRutKeepsSpecialty` | ruta de actualización B — upsert **sin** `Id`, coincidiendo en tenant+rut — cambia la especialidad y la lectura muestra el nuevo valor |
 
-The last two are what catch a field carried through only one of the two update
-paths. Both must exist.
+Las últimas dos son las que detectan un campo llevado a través de solo una de las dos
+rutas de actualización. Ambas deben existir.
 
-Add one compile-time assertion, in `tests/staff_test.go`, that pins the port
-shape so a future signature change fails the build here rather than in a
-consumer:
+Agregar una afirmación en tiempo de compilación, en `tests/staff_test.go`, que fije la forma
+del puerto para que un cambio de firma futuro falle la compilación aquí en lugar de en un
+consumidor:
 
 ```go
-// The port appointment_booking declares on its own side. Redeclared locally on
-// purpose: this repository must not depend on a scheduling module to prove it
-// satisfies a structural interface.
+// El puerto que appointment_booking declara en su propio lado. Redeclarado localmente a
+// propósito: este repositorio no debe depender de un módulo de programación para probar que
+// satisface una interfaz estructural.
 type staffReader interface {
 	StaffExists(tenantId, staffId string) (bool, error)
 }
@@ -286,47 +282,47 @@ type staffReader interface {
 var _ staffReader = (*staffmanager.Module)(nil)
 ```
 
-Run `gotest ./...` — everything green, including `trust_test.go` untouched.
+Ejecutar `gotest ./...` — todo en verde, incluyendo `trust_test.go` sin modificar.
 
-### Stage 6 — documentation
+### Etapa 6 — documentación
 
-`README.md` is four lines and an Ops table. Extend it:
+`README.md` tiene cuatro líneas y una tabla de Ops. Extenderlo:
 
-- State what a staff member is: the tenant-scoped registry linking a user (by
-  RUT) to devices, **and** carrying their specialty and role.
-- Add a **"Ports this module satisfies"** section naming `IsTrustedIP`
-  (`auth.TrustedIPStore`) and the new `StaffExists`, each with its one-line
-  question and its signature.
-- Add a **Schema** section listing `StaffMember`'s columns, marking `specialty`
-  and `role` as free text and stating that `role` is descriptive, never an
-  authorization input.
-- Add a note that `migrate.Migrate` uses `Sync` and is additive.
+- Indicar qué es un miembro del personal: el registro delimitado por tenant que vincula un usuario (por
+  RUT) a dispositivos, **y** almacena su especialidad y rol.
+- Agregar una sección **"Puertos que satisface este módulo"** nombrando `IsTrustedIP`
+  (`auth.TrustedIPStore`) y el nuevo `StaffExists`, cada uno con su pregunta de una línea
+  y su firma.
+- Agregar una sección de **Esquema** listando las columnas de `StaffMember`, marcando `specialty`
+  y `role` como texto libre e indicando que `role` es descriptivo, nunca una
+  entrada de autorización.
+- Agregar una nota indicando que `migrate.Migrate` utiliza `Sync` y es aditivo.
 
-Do **not** link any permanent document to `docs/PLAN.md` — it is deleted when
-this lands.
+No vincular ningún documento permanente a `docs/PLAN.md` — se elimina cuando
+esto se fusiona.
 
-## 5. Stages table
+## 5. Tabla de etapas
 
-| # | Stage | Files | Acceptance |
+| # | Etapa | Archivos | Aceptación |
 |---|---|---|---|
-| 1 | Fields | `model.go`, `model_orm.go` (ormc) | `Specialty` and `Role` on the generated struct |
-| 2 | Upsert paths | `module.go` | `grep -c "existing.Specialty" module.go` → 2 |
-| 3 | `StaffExists` | `module.go` | absent row → `(false, nil)` |
-| 4 | Additive migration | `migrate/migrate.go` | `grep -n "CreateTable" migrate/migrate.go` → empty |
-| 5 | Tests | `tests/staff_test.go` (new) | 7 cases + the port assertion |
-| 6 | Docs | `README.md` | ports and schema documented |
+| 1 | Campos | `model.go`, `model_orm.go` (ormc) | `Specialty` y `Role` en la estructura generada |
+| 2 | Rutas de Upsert | `module.go` | `grep -c "existing.Specialty" module.go` → 2 |
+| 3 | `StaffExists` | `module.go` | fila ausente → `(false, nil)` |
+| 4 | Migración aditiva | `migrate/migrate.go` | `grep -n "CreateTable" migrate/migrate.go` → vacío |
+| 5 | Pruebas | `tests/staff_test.go` (nuevo) | 7 casos + la afirmación del puerto |
+| 6 | Docs | `README.md` | puertos y esquema documentados |
 
-## 6. Acceptance criteria
+## 6. Criterios de aceptación
 
-- `grep -n "CreateTable" migrate/migrate.go` → **empty**; `Sync` is the only
-  DDL call.
-- `grep -c "existing.Specialty" module.go` → `2`; same for `existing.Role`.
-- `var _ staffReader = (*staffmanager.Module)(nil)` compiles in
+- `grep -n "CreateTable" migrate/migrate.go` → **vacío**; `Sync` es la única
+  llamada DDL.
+- `grep -c "existing.Specialty" module.go` → `2`; igual para `existing.Role`.
+- `var _ staffReader = (*staffmanager.Module)(nil)` compila en
   `tests/staff_test.go`.
-- `StaffExists` returns `(false, nil)` — never an error — for an unknown id, an
-  id from another tenant, and empty arguments.
-- `model_orm.go` changed only through `ormc` regeneration.
-- `StaffMember.Item()` is unchanged.
-- No hardcoded specialty list, slug table, or label `switch` anywhere in the
-  repository: `grep -rniE "radiolog|traumatolog|kinesiolog" .` → **empty**.
-- `gotest ./...` green, `tests/trust_test.go` unmodified.
+- `StaffExists` retorna `(false, nil)` —nunca un error— para un id desconocido, un
+  id de otro tenant, y argumentos vacíos.
+- `model_orm.go` cambiado solo mediante regeneración por `ormc`.
+- `StaffMember.Item()` no cambia.
+- Sin lista de especialidades codificada a mano, tabla de slugs o `switch` de etiquetas en ninguna parte del
+  repositorio: `grep -rniE "radiolog|traumatolog|kinesiolog" .` → **vacío**.
+- `gotest ./...` en verde, `tests/trust_test.go` no modificado.

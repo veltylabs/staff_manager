@@ -6,10 +6,10 @@ import (
 	staffmanager "github.com/veltylabs/staff_manager"
 )
 
-// TestIsTrustedIP is the consumer-shaped proof for the trust decision: it
-// must answer strictly through the injected DeviceReader, never by reading
-// device_manager's own table directly (that reimplementation — deviceProbe —
-// was removed; see docs/PLAN.md in veltylabs/mjosefa-cms for why).
+// TestIsTrustedIP es la prueba con forma de consumidor para la decisión de confianza:
+// debe responder estrictamente a través del DeviceReader inyectado, nunca leyendo
+// la tabla propia de device_manager directamente (esa reimplementación — deviceProbe —
+// fue eliminada; ver docs/PLAN.md en veltylabs/mjosefa-cms para saber por qué).
 func TestIsTrustedIP(t *testing.T) {
 	devices := &fakeDevices{byIP: map[string]string{
 		"192.168.1.10": "device-1",

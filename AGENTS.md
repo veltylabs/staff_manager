@@ -263,3 +263,4 @@ never runs `codejob` or `gopush` itself — dispatch and close are the human's c
   globally (two tenants may register the same private IP range independently).
 - **Publishes events**: `device_manager.device.created` / `.updated` / `.deactivated` / `.deleted` —
   `Deps.Publisher` optional, `nil` disables silently.
+- **Idioma del repositorio / Language rule**: Toda la documentación del repositorio (incluyendo README.md, docs/PLAN.md, etc.) y todos los comentarios de código en archivos Go deben estar escritos explícitamente en español.

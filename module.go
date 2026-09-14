@@ -49,11 +49,11 @@ func New(db *orm.DB, deps Deps) (*Module, error) {
 	}, nil
 }
 
-// IsTrustedIP implements auth.TrustedIPStore. The single question login
-// asks: is ip a device assigned to userID? Answered through the injected
-// DeviceReader only — never a direct read of device_manager's own table
-// (see Deps.Devices' doc comment; the module whitelist forbids importing a
-// sibling module's storage shape).
+// IsTrustedIP implementa auth.TrustedIPStore. La única pregunta que hace
+// el login es: ¿es ip un dispositivo asignado a userID? Respondido únicamente
+// a través del DeviceReader inyectado — nunca una lectura directa de la tabla
+// de device_manager (ver el comentario de doc de Deps.Devices; la lista blanca
+// del módulo prohíbe importar la forma de almacenamiento de un módulo hermano).
 func (m *Module) IsTrustedIP(userID, ip string) bool {
 	if m.db == nil || userID == "" || ip == "" {
 		return false
@@ -78,7 +78,7 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 	if member.TenantId == "" {
 		member.TenantId = m.tenantID
 	}
-	// Validate RUT
+	// Validar RUT
 	normalized, err := m.validateRUT(member.Rut)
 	if err != nil {
 		return StaffMember{}, err
@@ -86,15 +86,17 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 	member.Rut = normalized
 	member.UpdatedAt = time.Now()
 
-	// If Id provided, try update
+	// Si se proporcionó Id, intentar actualizar
 	if member.Id != "" {
 		var existing StaffMember
 		qb := m.db.Query(&existing).Where("id").Eq(member.Id).Where("tenant_id").Eq(member.TenantId)
 		err := qb.ReadOne()
 		if err == nil {
-			// Update
+			// Actualizar
 			existing.Name = member.Name
 			existing.Rut = member.Rut
+			existing.Specialty = member.Specialty
+			existing.Role = member.Role
 			existing.IsActive = member.IsActive
 			existing.UserId = member.UserId
 			existing.UpdatedAt = member.UpdatedAt
@@ -107,13 +109,15 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 			return StaffMember{}, err
 		}
 	}
-	// Check existing by tenant+rut or tenant+user_id
+	// Verificar existente por tenant+rut o tenant+user_id
 	var existing StaffMember
 	qb := m.db.Query(&existing).Where("tenant_id").Eq(member.TenantId).Where("rut").Eq(member.Rut)
 	err = qb.ReadOne()
 	if err == nil {
-		// Update existing
+		// Actualizar existente
 		existing.Name = member.Name
+		existing.Specialty = member.Specialty
+		existing.Role = member.Role
 		existing.IsActive = member.IsActive
 		existing.UpdatedAt = member.UpdatedAt
 		if member.UserId != "" {
@@ -127,7 +131,7 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 	if err != orm.ErrNotFound && err != nil {
 		return StaffMember{}, err
 	}
-	// Create new
+	// Crear nuevo
 	if member.Id == "" {
 		member.Id = m.ids.NewID()
 	}
@@ -141,12 +145,12 @@ func (m *Module) AssignDevice(staffID, deviceID string) error {
 	if staffID == "" || deviceID == "" {
 		return fmt.Err("staff_manager: staffID and deviceID required")
 	}
-	// Check already exists
+	// Verificar si ya existe
 	var sd StaffDevice
 	qb := m.db.Query(&sd).Where("staff_id").Eq(staffID).Where("device_id").Eq(deviceID)
 	err := qb.ReadOne()
 	if err == nil {
-		return nil // already assigned
+		return nil // ya asignado
 	}
 	if err != orm.ErrNotFound && err != nil {
 		return err
@@ -168,6 +172,29 @@ func (m *Module) GetStaff(tenantID, id string) (StaffMember, error) {
 	return s, nil
 }
 
+// StaffExists reporta si un miembro del personal con este id pertenece a este
+// tenant. Satisface el puerto estrecho StaffReader que un módulo de programación
+// declara en su propio lado (StaffExists(tenantId, staffId) (bool, error)) —
+// estructuralmente, sin adaptador y sin importación en ninguna dirección.
+//
+// Una fila ausente es (false, nil), NO un error: "este id no es nuestro" es
+// la respuesta que el llamante solicitó. Solo un fallo real de almacenamiento retorna un
+// error no nulo, para que un llamante nunca confunda una base de datos caída con un "no"
+// limpio.
+func (m *Module) StaffExists(tenantID, staffID string) (bool, error) {
+	if tenantID == "" || staffID == "" {
+		return false, nil
+	}
+	_, err := m.GetStaff(tenantID, staffID)
+	if err != nil {
+		if err == ErrNotFound {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
 func (m *Module) ListStaff(tenantID string) ([]StaffMember, error) {
 	qb := m.db.Query(&StaffMember{}).Where("tenant_id").Eq(tenantID)
 	results, err := ReadAllStaffMember(qb)
@@ -179,13 +206,4 @@ func (m *Module) ListStaff(tenantID string) ([]StaffMember, error) {
 		out[i] = *v
 	}
 	return out, nil
-}
-
-func ReadAllStaffMember(qb *orm.QB) (StaffMemberList, error) {
-	var results StaffMemberList
-	err := qb.ReadAll(
-		func() model.Model { return &StaffMember{} },
-		func(m model.Model) { results = append(results, m.(*StaffMember)) },
-	)
-	return results, err
 }
