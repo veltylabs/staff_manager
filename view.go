@@ -14,7 +14,7 @@ const titleStaff = "Funcionarios"
 
 func NewView(caller router.Caller) view.Presenter {
 	b := view.NewCallerLister(caller,
-		view.Ops{List: OpListStaff, Save: OpUpsertStaff, Delete: OpDeleteStaff},
+		view.Ops{Module: ModelName, List: OpListStaff, Save: OpUpsertStaff, Delete: OpDeleteStaff},
 		func() model.ModelSlice { return &StaffMemberList{} })
 	return view.New(b, &StaffMember{}, view.WithTitle(titleStaff))
 }

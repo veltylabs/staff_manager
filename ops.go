@@ -13,7 +13,13 @@ const (
 	OpDeleteStaff = "delete_staff"
 )
 
-func (m *Module) ModelName() string { return "staff_manager" }
+// ModelName is this module's identity: mcp.HarvestOps qualifies every op
+// below as "staff_manager.<name>" on the wire, and view.go's NewView passes
+// this same constant as view.Ops.Module so the client composes the
+// identical qualified name.
+const ModelName = "staff_manager"
+
+func (m *Module) ModelName() string { return ModelName }
 
 func (m *Module) MountOperations(reg router.OperationRegistry) {
 	reg.Operation(OpListStaff, m.opListStaff).Requires("staff_manager", model.Read).Accepts(&ListStaffArgs{})

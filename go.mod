@@ -6,11 +6,11 @@ require (
 	webtyp.com/ddl v0.0.17
 	webtyp.com/events v0.0.5
 	webtyp.com/fmt v1.0.0
-	webtyp.com/input v0.0.8
+	webtyp.com/input v0.0.9
 	webtyp.com/model v0.1.9
 	webtyp.com/orm v0.12.3
-	webtyp.com/router v0.1.38
+	webtyp.com/router v0.1.40
 	webtyp.com/storage v0.0.8
 	webtyp.com/time v0.5.6
-	webtyp.com/view v0.5.10
+	webtyp.com/view v0.6.2
 )
