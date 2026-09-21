@@ -19,7 +19,7 @@ var StaffMemberModel = model.Definition{
 		// Ambos campos son opcionales para que los registros existentes sigan siendo válidos.
 		{Name: "specialty", Type: input.Text(), Permitted: model.Permitted{Maximum: 120}},
 		{Name: "role", Type: input.Text(), Permitted: model.Permitted{Maximum: 60}},
-		{Name: "is_active", Type: input.Checkbox(), NotNull: true},
+		{Name: "is_active", Type: input.Checkbox()},
 		{Name: "updated_at", Type: model.Int(), OmitEmpty: true},
 	},
 }

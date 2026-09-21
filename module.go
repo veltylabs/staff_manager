@@ -100,6 +100,9 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 			existing.IsActive = member.IsActive
 			existing.UserId = member.UserId
 			existing.UpdatedAt = member.UpdatedAt
+			if err := existing.Validate(model.ActionUpdate); err != nil {
+				return StaffMember{}, err
+			}
 			if err := m.db.Update(&existing, orm.Eq("id", existing.Id), orm.Eq("tenant_id", existing.TenantId)); err != nil {
 				return StaffMember{}, err
 			}
@@ -123,6 +126,9 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 		if member.UserId != "" {
 			existing.UserId = member.UserId
 		}
+		if err := existing.Validate(model.ActionUpdate); err != nil {
+			return StaffMember{}, err
+		}
 		if err := m.db.Update(&existing, orm.Eq("id", existing.Id), orm.Eq("tenant_id", existing.TenantId)); err != nil {
 			return StaffMember{}, err
 		}
@@ -134,6 +140,9 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 	// Crear nuevo
 	if member.Id == "" {
 		member.Id = m.ids.NewID()
+	}
+	if err := member.Validate(model.ActionCreate); err != nil {
+		return StaffMember{}, err
 	}
 	if err := m.db.Create(&member); err != nil {
 		return StaffMember{}, err
