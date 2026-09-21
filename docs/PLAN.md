@@ -2,8 +2,9 @@
 PLAN: "fix: UpsertStaff writes to the database without validating the record first, unlike every sibling module"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 5169158035980385265
+PR: https://github.com/veltylabs/staff_manager/pull/2
 ---
 
 > This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.
