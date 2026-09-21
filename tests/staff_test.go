@@ -188,3 +188,42 @@ func TestUpsertStaff_UpdateByRutKeepsSpecialty(t *testing.T) {
 		t.Errorf("Role = %q, want %q", got.Role, "Neurologist")
 	}
 }
+
+// TestUpsertStaff_RejectsMissingUserID reproduces the bug found while
+// manually testing the "Funcionarios" screen of a downstream app
+// (mjosefa-cms): the crudview-generated form for StaffMember never collects
+// or generates user_id (it has no input.* widget — see AGENTS.md's "Widgets
+// are assigned by ROLE" rule, which correctly keeps it a plain model.Text()
+// since it is not user-editable), so every "add funcionario" attempt through
+// that GUI submits a StaffMember with UserId == "". StaffMemberModel
+// declares `{Name: "user_id", ..., NotNull: true}`, but UpsertStaff (module.go)
+// never calls member.Validate(...) before db.Create/db.Update — unlike every
+// sibling module (see github.com/veltylabs/item_catalog's mcp.go, which calls
+// item.Validate(action) before every Create/Update, per AGENTS.md's "Every
+// create/update path calls the generated Validate(action) ... BEFORE
+// db.Create/db.Update — fail-closed").
+//
+// Because storage/mem (this test's own backend) does not enforce NotNull the
+// way Postgres does, this defect was invisible to this module's own test
+// suite: UpsertStaff silently "succeeds" here with an empty UserId, while in
+// production the same call reaches Postgres's real NOT NULL constraint and
+// fails with a raw, untyped database error deep inside db.Create — never a
+// clean domain validation error the caller (or a UI) could show. This test
+// must fail today and pass once UpsertStaff validates before writing.
+func TestUpsertStaff_RejectsMissingUserID(t *testing.T) {
+	m := setup(t, nil)
+
+	_, err := m.UpsertStaff(staffmanager.StaffMember{
+		Rut:      "12345678-5",
+		Name:     "Ana Torres",
+		IsActive: true,
+		// UserId deliberately left empty — this is exactly what the GUI's
+		// auto-save form sends today, since it has no field for it.
+	})
+	if err == nil {
+		t.Fatal("UpsertStaff with an empty UserId returned no error — StaffMemberModel declares " +
+			"user_id NotNull:true, but nothing validates that before the row reaches the database. " +
+			"In production (Postgres, which DOES enforce NOT NULL, unlike this test's storage/mem " +
+			"backend) this same call fails with a raw DB error instead of a clean validation error")
+	}
+}
