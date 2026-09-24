@@ -121,7 +121,7 @@ reflection-free and TinyGo-sized. A module targets `wasm`/TinyGo first, so it fo
   from a genuinely form-bound field silently renders an empty form — so the rule cuts both ways.
 - **Intra-module foreign keys are declared** (`Ref: &OtherModel` + `DB: &model.FieldDB{RefColumn:
   "id"}` — drives DDL constraint generation; the Go type stays the plain scalar). Cross-module
-  references stay soft (a plain string id/SKU) — modules never import each other.
+  references stay soft (a plain string id/SKU) — the root domain package never imports another module (see "ui/, seed/ and web/" for the DAG rule).
 
 ## Op handlers — decode → validate → respond
 
@@ -200,8 +200,17 @@ reflection-free and TinyGo-sized. A module targets `wasm`/TinyGo first, so it fo
   never a bare `map` or `any` payload.
 - **Cross-module wiring**: when module A needs data from module B, A declares the narrow interface it
   needs (`CatalogReader`, `StaffReader`, …) in its own package; B's `*Module` satisfies it structurally
-  (no import of A). The composition root wires concrete instances together. Modules never import each
-  other.
+  (no import of A). The composition root wires concrete instances together. Root domain packages never import each other; only ui/, seed/ and web/ may, upstream only.
+
+## ui/, seed/ and web/ — the module's own view and demo
+
+The whitelist and blacklist above apply to the **root domain package**. Three sub-packages are exempt, and only them:
+
+- `ui/` (package `ui`, no build tag; `css.go`/`svg.go` tagged `!wasm`) may import `webtyp.com/layout/*`, `webtyp.com/components/*`, `dom`, `html`, `css`, `svg`, `widget`. It is the module's screen: `const ID`, `const Label` and `Browser(caller router.Caller, ids model.IDGenerator, tenantID string) (platformd.UIModule, error)`.
+- `seed/` (package `seed`, no build tag) holds demo data: `Load(...) (Data, error)`, which writes through the module's own methods so every row is validated, and returns the rows it created so downstream demos can reference them.
+- `web/` (package `main`, `web/client.go` tagged `wasm`) is the runnable demo and may additionally import the concrete `webtyp.com/storage/mem`, `webtyp.com/router/loopback`, `webtyp.com/events/mock`, `webtyp.com/unixid` and `webtyp.com/auth/trusted_ip` (for `ValidateRUT`).
+
+**Dependencies between modules form a DAG.** The root domain package still imports no sibling module. `ui/`, `seed/` and `web/` may import the domain, `ui/` and `seed/` packages of **upstream** modules only. Current graph: `device_manager`, `item_catalog`, `patient_directory`, `business_calendar` (leaves) ← `staff_manager` ← `appointment_booking` ← `clinical_encounter` (`appointment_booking` also depends on `item_catalog`, `patient_directory`, `business_calendar`; `clinical_encounter` also on `patient_directory` and `staff_manager`). A screen that mixes modules lives in the most-downstream module it touches.
 
 ## Testing
 
@@ -252,15 +261,8 @@ never runs `codejob` or `gopush` itself — dispatch and close are the human's c
 
 ## Domain-specific notes (edit per module — nothing above this line)
 
-- **Domain**: registry of network/office equipment (computers, printers, servers, other) owned per
-  tenant/location — the productionized form of the `webtyp/layout/platformd/modules/devices` demo
-  (`id`/`name`/`ip`), extended with `type`, `location`, `is_active`.
-  - Its `docs/PLAN.md` cites that demo path as UI-shape reference only (not a build-time dependency —
-    `device_manager` never imports `webtyp/layout` or `webtyp/dom`, per the blacklist above).
-- **Owns its schema**: calls `ddl.New(...).CreateTable(&Device{})` in `New()`, same as every other
-  tenant-scoped module. Not a read-only adapter over a legacy table (unlike `work_schedule`).
-- **Tenant-scoped**: every row carries `tenant_id`; IP uniqueness is enforced **per tenant**, not
-  globally (two tenants may register the same private IP range independently).
-- **Publishes events**: `device_manager.device.created` / `.updated` / `.deactivated` / `.deleted` —
-  `Deps.Publisher` optional, `nil` disables silently.
+- **Dominio**: registro de funcionarios por tenant (RUT, nombre, especialidad y rol como texto libre, activo) y su vínculo con dispositivos (`staff_device`).
+- **Es el trust store del login por IP**: `webtyp.com/auth/trusted_ip` le pregunta qué funcionario puede entrar desde qué IP. Por eso no se fusiona con `appointment_booking`.
+- **Puertos inyectados**: `Deps.ValidateRUT` (normaliza y valida el RUT; nunca se importa una implementación) y `Deps.Devices` (`DeviceReader`, satisfecho estructuralmente por `devicemanager.IPLocator`).
+- **Multi-tenant**: toda fila lleva `tenant_id`.
 - **Idioma del repositorio / Language rule**: Toda la documentación del repositorio (incluyendo README.md, docs/PLAN.md, etc.) y todos los comentarios de código en archivos Go deben estar escritos explícitamente en español.
