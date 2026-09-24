@@ -31,6 +31,16 @@ Módulo de gestión de personal para el ecosistema Velty: registro delimitado po
 - `is_active`: bool (requerido)
 - `updated_at`: int64 (marca temporal)
 
+## Vista y demo
+
+El módulo incluye su vista UI, datos de prueba y demo ejecutable en el navegador:
+
+- El paquete `ui` (`github.com/veltylabs/staff_manager/ui`) exporta `ID = "staff_manager"`, `Label = "Funcionarios"`, `Browser(caller, ids, tenantID)` y `StaffPanel(caller, ids, parentID)`.
+- El paquete `seed` (`github.com/veltylabs/staff_manager/seed`) exporta `Load(m, tenantID) (Data, error)` para poblar los miembros del personal iniciales de la demo.
+- El paquete `web` (`github.com/veltylabs/staff_manager/web`) contiene la demo independiente en WebAssembly para el navegador.
+
+Ejecute `webtyp` en la raíz del repositorio para abrir la demo — en el navegador, en memoria y sin necesidad de iniciar sesión.
+
 ## Migración
 
 `migrate.Migrate` utiliza `ddl.Sync` para realizar migraciones aditivas. Crea las tablas faltantes y agrega las columnas faltantes a las tablas existentes de forma segura.
