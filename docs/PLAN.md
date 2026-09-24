@@ -2,6 +2,8 @@
 PLAN: "feat(ui): el panel de Funcionarios, su semilla y su demo viven en el módulo"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 4442153583251064085
 ---
 
 > Este plan se despacha con el flujo CodeJob. Ver skill: agents-workflow.
