@@ -10,10 +10,12 @@ import (
 	"webtyp.com/svg"
 )
 
-// StaffPanel es la vista CRUD de funcionarios como componente independiente.
+// StaffPanel es la vista CRUD de funcionarios como componente independiente:
+// el panel que otras pantallas embeben (la pestaña "Datos y dispositivos" de
+// "Personal" en appointment_booking). parentID se usa tal cual.
 func StaffPanel(caller router.Caller, ids model.IDGenerator, parentID string) (dom.Component, error) {
 	return crudview.New(crudview.Config{
-		ParentID:  parentID + ".staff",
+		ParentID:  parentID,
 		Presenter: staffmanager.NewView(caller),
 		IDs:       ids,
 	})

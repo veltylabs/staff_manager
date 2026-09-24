@@ -9,7 +9,9 @@ type Data struct {
 	Staff []staffmanager.StaffMember
 }
 
-// Nombres de especialidades para las semillas.
+// Nombres de especialidades para las semillas: el Name (no el slug) de
+// itemcatalog.CanonicalSpecialties. El campo specialty es input.Text(), que no
+// admite '-', y la vista de reservas deriva las áreas de este mismo texto.
 const (
 	specialtyMedicinaGeneral = "Medicina General"
 	specialtyTraumatologia    = "Traumatología"
