@@ -108,7 +108,7 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 			}
 			return existing, nil
 		}
-		if err != orm.ErrNotFound {
+		if !orm.IsNotFound(err) {
 			return StaffMember{}, err
 		}
 	}
@@ -134,7 +134,7 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 		}
 		return existing, nil
 	}
-	if err != orm.ErrNotFound && err != nil {
+	if !orm.IsNotFound(err) && err != nil {
 		return StaffMember{}, err
 	}
 	// Crear nuevo
@@ -161,7 +161,7 @@ func (m *Module) AssignDevice(staffID, deviceID string) error {
 	if err == nil {
 		return nil // ya asignado
 	}
-	if err != orm.ErrNotFound && err != nil {
+	if !orm.IsNotFound(err) && err != nil {
 		return err
 	}
 	sd = StaffDevice{StaffId: staffID, DeviceId: deviceID}
@@ -173,7 +173,7 @@ func (m *Module) GetStaff(tenantID, id string) (StaffMember, error) {
 	qb := m.db.Query(&s).Where("id").Eq(id).Where("tenant_id").Eq(tenantID)
 	err := qb.ReadOne()
 	if err != nil {
-		if err == orm.ErrNotFound {
+		if orm.IsNotFound(err) {
 			return StaffMember{}, ErrNotFound
 		}
 		return StaffMember{}, err
@@ -196,7 +196,7 @@ func (m *Module) StaffExists(tenantID, staffID string) (bool, error) {
 	}
 	_, err := m.GetStaff(tenantID, staffID)
 	if err != nil {
-		if err == ErrNotFound {
+		if e, ok := err.(domainError); ok && e == ErrNotFound {
 			return false, nil
 		}
 		return false, err

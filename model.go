@@ -1,7 +1,6 @@
 package staffmanager
 
 import (
-	"webtyp.com/fmt"
 	"webtyp.com/input"
 	"webtyp.com/model"
 )
@@ -47,8 +46,12 @@ var GetStaffArgsModel = model.Definition{
 	},
 }
 
-var (
-	ErrNotFound = fmt.Err("staff not found")
+type domainError string
+
+func (e domainError) Error() string { return string(e) }
+
+const (
+	ErrNotFound domainError = "staff not found"
 )
 
 const (
