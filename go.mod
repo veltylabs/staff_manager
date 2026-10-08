@@ -10,7 +10,7 @@ require (
 	webtyp.com/events v0.0.5
 	webtyp.com/fmt v1.0.0
 	webtyp.com/input v0.0.18
-	webtyp.com/layout v0.3.32
+	webtyp.com/layout v0.3.35
 	webtyp.com/model v0.2.2
 	webtyp.com/orm v0.12.4
 	webtyp.com/router v0.3.2
@@ -23,12 +23,12 @@ require (
 
 require (
 	webtyp.com/color v0.1.2 // indirect
-	webtyp.com/components v0.8.12 // indirect
+	webtyp.com/components v0.8.16 // indirect
 	webtyp.com/css v0.4.29 // indirect
 	webtyp.com/date v0.0.9 // indirect
 	webtyp.com/escape v0.1.0 // indirect
 	webtyp.com/font v0.0.5 // indirect
-	webtyp.com/form v0.4.24 // indirect
+	webtyp.com/form v0.4.29 // indirect
 	webtyp.com/html v0.0.24 // indirect
 	webtyp.com/icons v0.0.7 // indirect
 	webtyp.com/json v0.5.29 // indirect
@@ -36,5 +36,5 @@ require (
 	webtyp.com/msgtype v0.1.0 // indirect
 	webtyp.com/network v0.1.1 // indirect
 	webtyp.com/user v0.3.13 // indirect
-	webtyp.com/widget v0.6.36 // indirect
+	webtyp.com/widget v0.6.37 // indirect
 )
