@@ -63,7 +63,7 @@ func (m *Module) opGetStaff(ctx router.Context) {
 	}
 	s, err := m.GetStaff(args.TenantId, args.Id)
 	if err != nil {
-		if err == ErrNotFound {
+		if e, ok := err.(domainError); ok && e == ErrNotFound {
 			ctx.WriteStatus(404)
 		} else {
 			ctx.WriteStatus(500)
