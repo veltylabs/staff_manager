@@ -2,9 +2,8 @@
 PLAN: "feat: StaffCard — nombre, especialidad y estado de un profesional, sin datos personales"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: review
+STATUS: running
 SESSION: 4804385620053531228
-PR: https://github.com/veltylabs/staff_manager/pull/5
 ---
 
 > Este plan se despacha con el flujo CodeJob. Ver skill: agents-workflow.

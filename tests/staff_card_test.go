@@ -3,11 +3,11 @@ package tests
 import (
 	"testing"
 
+	staffmanager "github.com/veltylabs/staff_manager"
 	"webtyp.com/fmt"
 	"webtyp.com/orm"
 	"webtyp.com/storage"
 	"webtyp.com/storage/mem"
-	staffmanager "github.com/veltylabs/staff_manager"
 )
 
 func TestStaffCard_EmptyArgsNotFound(t *testing.T) {
@@ -72,10 +72,10 @@ func TestStaffCard_UnknownOrOtherTenantNotFound(t *testing.T) {
 	m := setup(t, nil)
 
 	s1, err := m.UpsertStaff(staffmanager.StaffMember{
-		Name:      "Ana",
-		IsActive:  true,
-		UserId:    "usr1",
-		Rut:       "1-9",
+		Name:     "Ana",
+		IsActive: true,
+		UserId:   "usr1",
+		Rut:      "1-9",
 	})
 	if err != nil {
 		t.Fatalf("UpsertStaff: %v", err)
@@ -100,6 +100,7 @@ type fakeStorageConn struct {
 }
 
 type brokenScanner struct{}
+
 func (brokenScanner) Scan(dest ...any) error { return fmt.Err("error simulado") }
 
 func (f *fakeStorageConn) QueryRow(query string, args ...any) storage.Scanner {
