@@ -181,6 +181,21 @@ func (m *Module) GetStaff(tenantID, id string) (StaffMember, error) {
 	return s, nil
 }
 
+// StaffCard devuelve lo que se puede mostrar al público de un profesional:
+// nombre, especialidad y si está activo. Nunca RUT, usuario, dispositivos ni
+// contacto. Satisface StaffReader.StaffCard de appointment_booking
+// estructuralmente. Ausente u otro tenant ⇒ ErrNotFound.
+func (m *Module) StaffCard(tenantID, staffID string) (name, specialty string, active bool, err error) {
+	if tenantID == "" || staffID == "" {
+		return "", "", false, ErrNotFound
+	}
+	s, err := m.GetStaff(tenantID, staffID)
+	if err != nil {
+		return "", "", false, err
+	}
+	return s.Name, s.Specialty, s.IsActive, nil
+}
+
 // StaffExists reporta si un miembro del personal con este id pertenece a este
 // tenant. Satisface el puerto estrecho StaffReader que un módulo de programación
 // declara en su propio lado (StaffExists(tenantId, staffId) (bool, error)) —
