@@ -4,7 +4,7 @@ go 1.26.8
 
 require (
 	github.com/veltylabs/device_manager v0.2.9
-	webtyp.com/auth v0.0.72
+	webtyp.com/auth v0.0.75
 	webtyp.com/ddl v0.0.17
 	webtyp.com/dom v0.13.26
 	webtyp.com/events v0.0.6
@@ -31,7 +31,7 @@ require (
 	webtyp.com/form v0.4.41 // indirect
 	webtyp.com/html v0.0.27 // indirect
 	webtyp.com/icons v0.0.7 // indirect
-	webtyp.com/json v0.5.29 // indirect
+	webtyp.com/json v0.5.30 // indirect
 	webtyp.com/lang v0.1.6 // indirect
 	webtyp.com/msgtype v0.1.0 // indirect
 	webtyp.com/network v0.1.2 // indirect
