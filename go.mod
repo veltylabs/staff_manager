@@ -7,7 +7,7 @@ require (
 	webtyp.com/auth v0.0.75
 	webtyp.com/ddl v0.0.17
 	webtyp.com/dom v0.13.26
-	webtyp.com/events v0.0.6
+	webtyp.com/events v0.1.0
 	webtyp.com/fmt v1.0.0
 	webtyp.com/input v0.0.20
 	webtyp.com/layout v0.3.52
