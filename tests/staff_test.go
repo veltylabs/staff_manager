@@ -198,7 +198,7 @@ func TestUpsertStaff_UpdateByRutKeepsSpecialty(t *testing.T) {
 // that GUI submits a StaffMember with UserId == "". StaffMemberModel
 // declares `{Name: "user_id", ..., NotNull: true}`, but UpsertStaff (module.go)
 // never calls member.Validate(...) before db.Create/db.Update — unlike every
-// sibling module (see github.com/veltylabs/item_catalog's mcp.go, which calls
+// sibling module (see github.com/veltylabs/service_catalog's mcp.go, which calls
 // item.Validate(action) before every Create/Update, per AGENTS.md's "Every
 // create/update path calls the generated Validate(action) ... BEFORE
 // db.Create/db.Update — fail-closed").

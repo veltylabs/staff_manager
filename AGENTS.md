@@ -8,7 +8,7 @@ exception in one module's copy.
 
 Master plan (cross-repo status, whitelist rationale, dispatch order):
 [`app-releases/docs/REUSABLE_MODULES_MASTER_PLAN.md`](https://github.com/webtyp/app/blob/main/docs/REUSABLE_MODULES_MASTER_PLAN.md).
-Reference implementation (the pattern every module replicates): `github.com/veltylabs/item_catalog`.
+Reference implementation (the pattern every module replicates): `github.com/veltylabs/service_catalog`.
 
 ## Mission of a `veltylabs/modules/*` repo
 
@@ -90,7 +90,7 @@ reflection-free and TinyGo-sized. A module targets `wasm`/TinyGo first, so it fo
 - **No Go `map[K]V` anywhere**, test code included — and **no exceptions for "private state"**: a
   map inside a closure or unexported field ships TinyGo's map runtime in the wasm binary exactly the
   same. Use `fmt.KeyValue{Key, Value string}` for a string→string pair, or a small slice-of-structs
-  scanned linearly for anything else (the `byID []*X` linear-scan cache in `item_catalog/view.go` is
+  scanned linearly for anything else (the `byID []*X` linear-scan cache in `service_catalog/view.go` is
   the reference) — module collections (a tenant's items, a schema's fields) are always small enough
   that a linear scan costs nothing measurable.
 - **No `reflect`.** Struct introspection is a build-time (`ormc`) concern; the module consumes
@@ -210,7 +210,7 @@ The whitelist and blacklist above apply to the **root domain package**. Three su
 - `seed/` (package `seed`, no build tag) holds demo data: `Load(...) (Data, error)`, which writes through the module's own methods so every row is validated, and returns the rows it created so downstream demos can reference them.
 - `web/` (package `main`, `web/client.go` tagged `wasm`) is the runnable demo and may additionally import the concrete `webtyp.com/storage/mem`, `webtyp.com/router/loopback`, `webtyp.com/events/mock`, `webtyp.com/unixid` and `webtyp.com/auth/trusted_ip` (for `ValidateRUT`).
 
-**Dependencies between modules form a DAG.** The root domain package still imports no sibling module. `ui/`, `seed/` and `web/` may import the domain, `ui/` and `seed/` packages of **upstream** modules only. Current graph: `device_manager`, `item_catalog`, `patient_directory`, `business_calendar`, `payment_manager` (leaves) ← `staff_manager` ← `appointment_booking` ← `clinical_encounter` (`appointment_booking` also depends on `item_catalog`, `patient_directory`, `business_calendar`, `payment_manager`; `clinical_encounter` also on `patient_directory` and `staff_manager`). A screen that mixes modules lives in the most-downstream module it touches.
+**Dependencies between modules form a DAG.** The root domain package still imports no sibling module. `ui/`, `seed/` and `web/` may import the domain, `ui/` and `seed/` packages of **upstream** modules only. Current graph: `device_manager`, `service_catalog`, `patient_directory`, `business_calendar`, `payment_manager` (leaves) ← `staff_manager` ← `appointment_booking` ← `clinical_encounter` (`appointment_booking` also depends on `service_catalog`, `patient_directory`, `business_calendar`, `payment_manager`; `clinical_encounter` also on `patient_directory` and `staff_manager`). A screen that mixes modules lives in the most-downstream module it touches.
 
 ## Testing
 
