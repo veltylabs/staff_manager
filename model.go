@@ -19,7 +19,7 @@ var StaffMemberModel = model.Definition{
 		{Name: "specialty", Type: input.Text(), Permitted: model.Permitted{Maximum: 120}},
 		{Name: "role", Type: input.Text(), Permitted: model.Permitted{Maximum: 60}},
 		{Name: "is_active", Type: input.Checkbox()},
-		{Name: "updated_at", Type: model.Int(), OmitEmpty: true},
+		{Name: "updated_at", Type: model.NanoTime(), OmitEmpty: true},
 	},
 }
 

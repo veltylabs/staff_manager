@@ -84,7 +84,7 @@ func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
 		return StaffMember{}, err
 	}
 	member.Rut = normalized
-	member.UpdatedAt = time.Now()
+	member.UpdatedAt = time.NowNano()
 
 	// Si se proporcionó Id, intentar actualizar
 	if member.Id != "" {
