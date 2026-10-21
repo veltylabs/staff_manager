@@ -2,7 +2,7 @@
 PLAN: "refactor!: build destinations — web/browser.go and ui/browser.go with //go:build browser"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: done
 SESSION: 3830856205489761289
 ---
 
@@ -64,3 +64,6 @@ A PR that does not compile, or whose tests could not run, is a failed delivery. 
 |---|---|---|
 | 1 | `web/browser.go`, `ui/browser.go` | Rename to `web/browser.go` with `//go:build browser`, add tag to `ui/browser.go` |
 | 2 | tests, docs | Verify tests pass with `gotest ./...` |
+
+## Executor notes
+- Added `//go:build browser` to `ui/browser.go`. Note that `AGENTS.md` states "package `ui`, no build tag". As per instructions `ui/browser.go` carries `//go:build browser` and `ui/svg.go` keeps `//go:build !wasm`.
