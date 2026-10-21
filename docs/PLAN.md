@@ -2,8 +2,10 @@
 PLAN: "refactor!: build destinations — web/browser.go and ui/browser.go with //go:build browser"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 3830856205489761289
+PR: https://github.com/veltylabs/staff_manager/pull/6
+REVIEWED_COMMIT: 1c1d40fa0f984c5ee9073c2a11340b37d250d38d
 ---
 
 > Read AGENTS.md at the repo root before any change.
@@ -64,3 +66,6 @@ A PR that does not compile, or whose tests could not run, is a failed delivery. 
 |---|---|---|
 | 1 | `web/browser.go`, `ui/browser.go` | Rename to `web/browser.go` with `//go:build browser`, add tag to `ui/browser.go` |
 | 2 | tests, docs | Verify tests pass with `gotest ./...` |
+
+## Executor notes
+- Added `//go:build browser` to `ui/browser.go`. Note that `AGENTS.md` states "package `ui`, no build tag". As per instructions `ui/browser.go` carries `//go:build browser` and `ui/svg.go` keeps `//go:build !wasm`.
