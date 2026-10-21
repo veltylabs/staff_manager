@@ -3,7 +3,7 @@ module github.com/veltylabs/staff_manager
 go 1.26.8
 
 require (
-	github.com/veltylabs/device_manager v0.2.55
+	github.com/veltylabs/device_manager v0.2.63
 	webtyp.com/auth v0.0.76
 	webtyp.com/ddl v0.0.17
 	webtyp.com/dom v0.13.26
