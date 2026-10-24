@@ -6,7 +6,7 @@ require (
 	github.com/veltylabs/device_manager v0.2.63
 	webtyp.com/auth v0.0.76
 	webtyp.com/ddl v0.0.17
-	webtyp.com/dom v0.13.28
+	webtyp.com/dom v0.13.29
 	webtyp.com/events v0.1.0
 	webtyp.com/fmt v1.0.0
 	webtyp.com/input v0.0.20
