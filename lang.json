@@ -1,0 +1,19 @@
+{
+  "languages": ["es", "zh", "hi", "ar", "pt", "fr", "de", "ru"],
+  "keys": {
+    "Active": ["", "", "", "", "", "", "", ""],
+    "Name": ["", "", "", "", "", "", "", ""],
+    "Role": ["", "", "", "", "", "", "", ""],
+    "Rut": ["", "", "", "", "", "", "", ""],
+    "Specialty": ["", "", "", "", "", "", "", ""],
+    "device id": ["", "", "", "", "", "", "", ""],
+    "staff id": ["", "", "", "", "", "", "", ""],
+    "staff_manager: Deps.IDs is required": ["", "", "", "", "", "", "", ""],
+    "staff_manager: Deps.TenantID is required": ["", "", "", "", "", "", "", ""],
+    "staff_manager: Deps.ValidateRUT is required": ["", "", "", "", "", "", "", ""],
+    "staff_manager: staffID and deviceID required": ["", "", "", "", "", "", "", ""],
+    "tenant id": ["", "", "", "", "", "", "", ""],
+    "updated at": ["", "", "", "", "", "", "", ""],
+    "user id": ["", "", "", "", "", "", "", ""]
+  }
+}

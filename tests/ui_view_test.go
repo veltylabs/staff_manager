@@ -23,31 +23,28 @@ func (c *mockCaller) Dispatch(route string, args model.Encodable) {}
 
 var _ router.Caller = (*mockCaller)(nil)
 
-func TestUI_StaffPanelAndBrowser(t *testing.T) {
+func TestUI_Screens(t *testing.T) {
 	fake := &mockCaller{}
-	ids := &mockIDGen{}
 
-	panel, err := ui.StaffPanel(fake, ids, "parent")
-	if err != nil {
-		t.Fatalf("StaffPanel error: %v", err)
-	}
-	if panel == nil {
-		t.Fatal("StaffPanel returned nil component")
+	screens := ui.Screens(fake)
+	if len(screens) != 1 {
+		t.Fatalf("len(screens) = %d, want 1", len(screens))
 	}
 
-	module, err := ui.Browser(fake, ids, testTenant)
-	if err != nil {
-		t.Fatalf("Browser error: %v", err)
-	}
-	if module == nil {
-		t.Fatal("Browser returned nil UIModule")
+	screen := screens[0]
+	if err := screen.Validate(); err != nil {
+		t.Fatalf("screen.Validate() error: %v", err)
 	}
 
-	if got := module.ModelName(); got != ui.ID {
-		t.Errorf("ModelName = %q, want %q", got, ui.ID)
+	if screen.ID != ui.ID {
+		t.Errorf("ID = %q, want %q", screen.ID, ui.ID)
 	}
-	if got := module.Label(); got != ui.Label {
-		t.Errorf("Label = %q, want %q", got, ui.Label)
+	if screen.Permission != "staff_manager" {
+		t.Errorf("Permission = %q, want %q", screen.Permission, "staff_manager")
+	}
+
+	if screen.Presenter.Description() == "" {
+		t.Error("Description() is empty")
 	}
 }
 
