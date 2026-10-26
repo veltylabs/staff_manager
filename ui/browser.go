@@ -1,33 +1,23 @@
-//go:build browser
-
 package ui
 
 import (
 	staffmanager "github.com/veltylabs/staff_manager"
-	"webtyp.com/dom"
-	"webtyp.com/layout/crudview"
-	"webtyp.com/layout/platformd"
-	"webtyp.com/model"
+	"webtyp.com/lang"
 	"webtyp.com/router"
-	"webtyp.com/svg"
+	"webtyp.com/view"
 )
 
-// StaffPanel es la vista CRUD de funcionarios como componente independiente:
-// el panel que otras pantallas embeben (la pestaña "Datos y dispositivos" de
-// "Personal" en appointment_booking). parentID se usa tal cual.
-func StaffPanel(caller router.Caller, ids model.IDGenerator, parentID string) (dom.Component, error) {
-	return crudview.New(crudview.Config{
-		ParentID:  parentID,
-		Presenter: staffmanager.NewView(caller),
-		IDs:       ids,
-	})
-}
+const descStaff lang.Text = "Staff management: profiles, contact details and professional credentials."
 
-// Browser devuelve la pantalla principal de este módulo envuelta en un UIModule.
-func Browser(caller router.Caller, ids model.IDGenerator, tenantID string) (platformd.UIModule, error) {
-	panel, err := StaffPanel(caller, ids, ID)
-	if err != nil {
-		return nil, err
+// Screens declara las pantallas que este módulo ofrece al menú de la app.
+func Screens(caller router.Caller) []view.Screen {
+	return []view.Screen{
+		{
+			ID:         ID,
+			Label:      Label,
+			Icon:       ID,
+			Permission: "staff_manager",
+			Presenter:  staffmanager.NewView(caller, view.WithDescription(descStaff)),
+		},
 	}
-	return platformd.NewUIModule(ID, Label, svg.Icon(ID), panel), nil
 }

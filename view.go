@@ -12,9 +12,10 @@ func (m *StaffMember) Item() view.Item {
 
 const titleStaff = "Funcionarios"
 
-func NewView(caller router.Caller) view.Presenter {
+func NewView(caller router.Caller, opts ...view.Option) view.Presenter {
 	b := view.NewCallerLister(caller,
 		view.Ops{Module: ModelName, List: OpListStaff, Save: OpUpsertStaff, Delete: OpDeleteStaff},
 		func() model.ModelSlice { return &StaffMemberList{} })
-	return view.New(b, &StaffMember{}, view.WithTitle(titleStaff))
+	allOpts := append([]view.Option{view.WithTitle(titleStaff)}, opts...)
+	return view.New(b, &StaffMember{}, allOpts...)
 }
