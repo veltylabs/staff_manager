@@ -4,7 +4,7 @@ go 1.26.8
 
 require (
 	github.com/veltylabs/device_manager v0.2.71
-	webtyp.com/auth v0.0.80
+	webtyp.com/auth v0.0.82
 	webtyp.com/ddl v0.0.17
 	webtyp.com/dom v0.13.29
 	webtyp.com/events v0.1.0
