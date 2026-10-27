@@ -7,7 +7,7 @@ import (
 	"webtyp.com/view"
 )
 
-const descStaff lang.Text = "Staff management: profiles, contact details and professional credentials."
+const descStaff lang.Text = "Gestión de personal: perfiles, datos de contacto y credenciales profesionales."
 
 // Screens declara las pantallas que este módulo ofrece al menú de la app.
 func Screens(caller router.Caller) []view.Screen {

@@ -2,11 +2,11 @@
   "languages": ["es", "zh", "hi", "ar", "pt", "fr", "de", "ru"],
   "keys": {
     "Active": ["Activo", "", "", "", "", "", "", ""],
+    "Gestión de personal: perfiles, datos de contacto y credenciales profesionales.": ["Gestión de funcionarios: perfiles, datos de contacto y credenciales profesionales.", "", "", "", "", "", "", ""],
     "Name": ["Nombre", "", "", "", "", "", "", ""],
     "Role": ["Rol", "", "", "", "", "", "", ""],
     "Rut": ["RUT", "", "", "", "", "", "", ""],
     "Specialty": ["Especialidad", "", "", "", "", "", "", ""],
-    "Staff management: profiles, contact details and professional credentials.": ["Gestión de funcionarios: perfiles, datos de contacto y credenciales profesionales.", "", "", "", "", "", "", ""],
     "device id": ["id de equipo", "", "", "", "", "", "", ""],
     "is required": ["es requerido", "", "", "", "", "", "", ""],
     "staff id": ["id de funcionario", "", "", "", "", "", "", ""],
