@@ -6,13 +6,10 @@ import (
 	"webtyp.com/view"
 )
 
-func (m *StaffMember) Item() view.Item {
-	return view.Item{ID: m.Id, Label: m.Name, Description: m.Rut}
-}
-
 const titleStaff = "Funcionarios"
 
 func NewView(caller router.Caller, opts ...view.Option) view.Presenter {
+	caller = view.NewRecords().Caller(caller)
 	b := view.NewCallerLister(caller,
 		view.Ops{Module: ModelName, List: OpListStaff, Save: OpUpsertStaff, Delete: OpDeleteStaff},
 		func() model.ModelSlice { return &StaffMemberList{} })
