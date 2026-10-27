@@ -29,15 +29,19 @@ type Module struct {
 	devices     DeviceReader
 }
 
+func depErr(name string) error {
+	return fmt.Err("staff_manager: Deps."+name, "is required")
+}
+
 func New(db *orm.DB, deps Deps) (*Module, error) {
 	if deps.IDs == nil {
-		return nil, fmt.Err("staff_manager: Deps.IDs is required")
+		return nil, depErr("IDs")
 	}
 	if deps.TenantID == "" {
-		return nil, fmt.Err("staff_manager: Deps.TenantID is required")
+		return nil, depErr("TenantID")
 	}
 	if deps.ValidateRUT == nil {
-		return nil, fmt.Err("staff_manager: Deps.ValidateRUT is required")
+		return nil, depErr("ValidateRUT")
 	}
 	return &Module{
 		db:          db,

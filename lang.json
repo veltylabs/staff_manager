@@ -1,19 +1,18 @@
 {
   "languages": ["es", "zh", "hi", "ar", "pt", "fr", "de", "ru"],
   "keys": {
-    "Active": ["", "", "", "", "", "", "", ""],
-    "Name": ["", "", "", "", "", "", "", ""],
-    "Role": ["", "", "", "", "", "", "", ""],
-    "Rut": ["", "", "", "", "", "", "", ""],
-    "Specialty": ["", "", "", "", "", "", "", ""],
-    "device id": ["", "", "", "", "", "", "", ""],
-    "staff id": ["", "", "", "", "", "", "", ""],
-    "staff_manager: Deps.IDs is required": ["", "", "", "", "", "", "", ""],
-    "staff_manager: Deps.TenantID is required": ["", "", "", "", "", "", "", ""],
-    "staff_manager: Deps.ValidateRUT is required": ["", "", "", "", "", "", "", ""],
-    "staff_manager: staffID and deviceID required": ["", "", "", "", "", "", "", ""],
-    "tenant id": ["", "", "", "", "", "", "", ""],
-    "updated at": ["", "", "", "", "", "", "", ""],
-    "user id": ["", "", "", "", "", "", "", ""]
+    "Active": ["Activo", "", "", "", "", "", "", ""],
+    "Name": ["Nombre", "", "", "", "", "", "", ""],
+    "Role": ["Rol", "", "", "", "", "", "", ""],
+    "Rut": ["RUT", "", "", "", "", "", "", ""],
+    "Specialty": ["Especialidad", "", "", "", "", "", "", ""],
+    "Staff management: profiles, contact details and professional credentials.": ["Gestión de funcionarios: perfiles, datos de contacto y credenciales profesionales.", "", "", "", "", "", "", ""],
+    "device id": ["id de equipo", "", "", "", "", "", "", ""],
+    "is required": ["es requerido", "", "", "", "", "", "", ""],
+    "staff id": ["id de funcionario", "", "", "", "", "", "", ""],
+    "staff_manager: staffID and deviceID required": ["staff_manager: staffID y deviceID requeridos", "", "", "", "", "", "", ""],
+    "tenant id": ["id de arrendatario", "", "", "", "", "", "", ""],
+    "updated at": ["actualizado el", "", "", "", "", "", "", ""],
+    "user id": ["id de usuario", "", "", "", "", "", "", ""]
   }
 }
