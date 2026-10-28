@@ -222,7 +222,7 @@ func TestUpsertStaff_RejectsMissingUserID(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("UpsertStaff with an empty UserId returned no error — StaffMemberModel declares " +
-			"user_id NotNull:true, but nothing validates that before the row reaches the database. " +
+			"user_id NotNull:true, but nothing validates that before the Item reaches the database. " +
 			"In production (Postgres, which DOES enforce NOT NULL, unlike this test's storage/mem " +
 			"backend) this same call fails with a raw DB error instead of a clean validation error")
 	}
