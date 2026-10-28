@@ -11,8 +11,8 @@ var StaffMemberModel = model.Definition{
 		{Name: "id", Type: model.Text(), DB: &model.FieldDB{PK: true}, OmitEmpty: true},
 		{Name: "tenant_id", Type: model.Text(), NotNull: true},
 		{Name: "user_id", Type: model.Text(), NotNull: true},
-		{Name: "rut", Type: input.Rut(), Label: "Rut", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}, Row: model.RowDetail},
-		{Name: "name", Type: input.Text(), Label: "Name", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}, Row: model.RowTitle},
+		{Name: "rut", Type: input.Rut(), Label: "Rut", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}, Item: model.ItemDescription},
+		{Name: "name", Type: input.Text(), Label: "Name", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}, Item: model.ItemLabel},
 		// Specialty y role son valores de texto libre sin enums ni slugs. Role es
 		// puramente descriptivo (ej. título de trabajo) y nunca una entrada de autorización.
 		// Ambos campos son opcionales para que los registros existentes sigan siendo válidos.

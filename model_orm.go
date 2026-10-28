@@ -65,6 +65,10 @@ func (m *StaffMember) Validate(action byte) error {
 	return model.ValidateFields(action, m)
 }
 
+func (m *StaffMember) Item() model.Item {
+	return model.Item{ID: m.Id, Label: m.Name, Description: m.Rut}
+}
+
 var StaffMember_ = struct {
 	Id string
 	TenantId string

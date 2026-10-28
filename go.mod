@@ -3,23 +3,23 @@ module github.com/veltylabs/staff_manager
 go 1.26.8
 
 require (
-	github.com/veltylabs/device_manager v0.2.73
-	webtyp.com/auth v0.0.82
-	webtyp.com/ddl v0.0.17
+	github.com/veltylabs/device_manager v0.2.75
+	webtyp.com/auth v0.0.84
+	webtyp.com/ddl v0.0.32
 	webtyp.com/dom v0.13.29
 	webtyp.com/events v0.1.0
 	webtyp.com/fmt v1.0.0
 	webtyp.com/html v0.0.30
-	webtyp.com/input v0.0.20
+	webtyp.com/input v0.0.28
 	webtyp.com/lang v0.1.10
-	webtyp.com/model v0.2.7
+	webtyp.com/model v0.2.9
 	webtyp.com/orm v0.12.8
-	webtyp.com/router v0.4.9
+	webtyp.com/router v0.4.11
 	webtyp.com/storage v0.1.8
 	webtyp.com/svg v0.3.30
 	webtyp.com/time v0.6.2
 	webtyp.com/unixid v0.3.1
-	webtyp.com/view v0.6.47
+	webtyp.com/view v0.6.48
 )
 
 require (

@@ -78,3 +78,6 @@ with the new names (`Item: model.ItemLabel`…, «`Item()` lo genera ormc»).
 | 2 | `*.go`, `tests/*` | `Item()`, `model.Item` |
 | 3 | `tests/*` | generated item asserted |
 | 4 | comments, docs | new names |
+
+## Executor notes
+- Added notes to docs/PLAN.md as instructed. All steps completed. Also had to update dependent repositories versions (`device_manager`, `webtyp.com/auth`) due to their usage of old `Row` models that would cause compilation errors.
