@@ -28,6 +28,7 @@ func (m *Module) MountOperations(reg router.OperationRegistry) {
 	reg.Operation(OpGetStaff, m.opGetStaff).Requires(res, model.Read).Accepts(&GetStaffArgs{})
 
 	view.MountSave(reg, OpUpsertStaff, func(s *StaffMember) error {
+		s.TenantId = m.tenantID // el tenant lo pone el servidor, nunca la petición (D32)
 		out, err := m.UpsertStaff(*s)
 		*s = out
 		return err
@@ -67,11 +68,7 @@ func (m *Module) opGetStaff(ctx router.Context) {
 		rpc.WriteError(ctx, ErrCannotRead)
 		return
 	}
-	tenantID := args.TenantId
-	if tenantID == "" {
-		tenantID = m.tenantID
-	}
-	s, err := m.GetStaff(tenantID, args.Id)
+	s, err := m.GetStaff(m.tenantID, args.Id)
 	if err != nil {
 		rpc.WriteError(ctx, err)
 		return

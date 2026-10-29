@@ -35,7 +35,6 @@ var StaffDeviceModel = model.Definition{
 var GetStaffArgsModel = model.Definition{
 	Name: "get_staff_args",
 	Fields: model.Fields{
-		{Name: "tenant_id", Type: model.Text()},
 		{Name: "id", Type: model.Text()},
 	},
 }

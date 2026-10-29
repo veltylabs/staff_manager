@@ -177,7 +177,6 @@ func (m *StaffDevice) SchemaExt() []model.FieldExt {
 }
 
 type GetStaffArgs struct {
-	TenantId string
 	Id string
 }
 
@@ -185,17 +184,15 @@ func (m *GetStaffArgs) ModelName() string { return "get_staff_args" }
 
 func (m *GetStaffArgs) Schema() []model.Field { return GetStaffArgsModel.Fields }
 
-func (m *GetStaffArgs) Pointers() []any { return []any{&m.TenantId, &m.Id} }
+func (m *GetStaffArgs) Pointers() []any { return []any{&m.Id} }
 
 func (m *GetStaffArgs) IsNil() bool { return m == nil }
 
 func (m *GetStaffArgs) EncodeFields(w model.FieldWriter) {
-	w.String("tenant_id", m.TenantId)
 	w.String("id", m.Id)
 }
 
 func (m *GetStaffArgs) DecodeFields(r model.FieldReader) {
-	if v, ok := r.String("tenant_id"); ok { m.TenantId = v }
 	if v, ok := r.String("id"); ok { m.Id = v }
 }
 
