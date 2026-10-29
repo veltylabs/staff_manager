@@ -2,6 +2,8 @@
 PLAN: "refactor: the Staff screen saves and deletes through view.MountSave/MountDelete; errors through rpc.WriteError; resources from the tables; foreign keys declared; English keys"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 17420529706576362991
 ---
 
 > Read AGENTS.md at the repo root before any change.
