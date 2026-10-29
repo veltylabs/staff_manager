@@ -84,7 +84,7 @@ func TestScreen_SaveAndDelete(t *testing.T) {
 		t.Fatalf("Expected error after deletion, got nil")
 	}
 
-	if err != staffmanager.ErrNotFound {
-		t.Fatalf("Expected ErrNotFound, got %v", err)
+	if model.KindOf(err) != model.ErrorNotFound {
+		t.Fatalf("Expected model.ErrorNotFound, got %v", err)
 	}
 }

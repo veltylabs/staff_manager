@@ -1,6 +1,7 @@
 package staffmanager
 
 import (
+	"github.com/veltylabs/device_manager"
 	"webtyp.com/input"
 	"webtyp.com/model"
 )
@@ -26,15 +27,8 @@ var StaffMemberModel = model.Definition{
 var StaffDeviceModel = model.Definition{
 	Name: "staff_device",
 	Fields: model.Fields{
-		{Name: "staff_id", Type: model.Text(), DB: &model.FieldDB{PK: true}, NotNull: true},
-		{Name: "device_id", Type: model.Text(), DB: &model.FieldDB{PK: true}, NotNull: true},
-	},
-}
-
-var ListStaffArgsModel = model.Definition{
-	Name: "list_staff_args",
-	Fields: model.Fields{
-		{Name: "tenant_id", Type: model.Text()},
+		{Name: "staff_id", Type: model.Text(), Ref: &StaffMemberModel, DB: &model.FieldDB{PK: true, RefColumn: "id"}, NotNull: true},
+		{Name: "device_id", Type: model.Text(), Ref: &devicemanager.DeviceModel, DB: &model.FieldDB{PK: true, RefColumn: "id"}, NotNull: true},
 	},
 }
 

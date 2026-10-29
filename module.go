@@ -225,7 +225,7 @@ func (m *Module) StaffExists(tenantID, staffID string) (bool, error) {
 	}
 	_, err := m.GetStaff(tenantID, staffID)
 	if err != nil {
-		if err == ErrNotFound {
+		if model.KindOf(err) == model.ErrorNotFound {
 			return false, nil
 		}
 		return false, err

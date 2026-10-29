@@ -169,37 +169,11 @@ func ReadAllStaffDevice(qb *orm.QB) (StaffDeviceList, error) {
 	return results, err
 }
 
-type ListStaffArgs struct {
-	TenantId string
-}
-
-func (m *ListStaffArgs) ModelName() string { return "list_staff_args" }
-
-func (m *ListStaffArgs) Schema() []model.Field { return ListStaffArgsModel.Fields }
-
-func (m *ListStaffArgs) Pointers() []any { return []any{&m.TenantId} }
-
-func (m *ListStaffArgs) IsNil() bool { return m == nil }
-
-func (m *ListStaffArgs) EncodeFields(w model.FieldWriter) {
-	w.String("tenant_id", m.TenantId)
-}
-
-func (m *ListStaffArgs) DecodeFields(r model.FieldReader) {
-	if v, ok := r.String("tenant_id"); ok { m.TenantId = v }
-}
-
-type ListStaffArgsList []*ListStaffArgs
-
-func (s *ListStaffArgsList) Len() int             { return len(*s) }
-func (s *ListStaffArgsList) At(i int) model.Fielder { return (*s)[i] }
-func (s *ListStaffArgsList) Append() model.Fielder  { v := &ListStaffArgs{}; *s = append(*s, v); return v }
-func (s *ListStaffArgsList) IsNil() bool          { return s == nil }
-func (s *ListStaffArgsList) EncodeFields(_ model.FieldWriter) {}
-func (s *ListStaffArgsList) DecodeFields(_ model.FieldReader) {}
-
-func (m *ListStaffArgs) Validate(action byte) error {
-	return model.ValidateFields(action, m)
+func (m *StaffDevice) SchemaExt() []model.FieldExt {
+	return []model.FieldExt{
+		{Field: StaffDeviceModel.Fields[0], Ref: "staff_member", RefColumn: "id", OnDelete: ""},
+		{Field: StaffDeviceModel.Fields[1], Ref: "devicemanager.device", RefColumn: "id", OnDelete: ""},
+	}
 }
 
 type GetStaffArgs struct {
