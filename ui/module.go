@@ -4,4 +4,4 @@ package ui
 const ID = "staff_manager"
 
 // Label es el nombre descriptivo mostrado en la navegación.
-const Label = "Funcionarios"
+const Label = "Staff"

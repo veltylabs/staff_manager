@@ -2,8 +2,10 @@
 PLAN: "refactor: the Staff screen saves and deletes through view.MountSave/MountDelete; errors through rpc.WriteError; resources from the tables; foreign keys declared; English keys"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 17420529706576362991
+PR: https://github.com/veltylabs/staff_manager/pull/10
+REVIEWED_COMMIT: 0d5f459206783e9a9aa62cf6382d57952bae94da
 ---
 
 > Read AGENTS.md at the repo root before any change.
@@ -105,3 +107,7 @@ GOPRIVATE=webtyp.com/*,github.com/veltylabs/* GOFLAGS=-mod=mod gotest
 | 4 | `ui/*`, `lang.json` | `langc sync .` clean |
 | 5 | `tests/*` | suite green |
 | 6 | `README.md` | text present |
+
+## Executor notes
+
+- Skipped the demo screenshot part in Stage 5 as there is no easy manual browser snapshot set up for the manual demo test environment.
