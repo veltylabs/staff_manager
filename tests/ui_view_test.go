@@ -39,8 +39,9 @@ func TestUI_Screens(t *testing.T) {
 	if screen.ID != ui.ID {
 		t.Errorf("ID = %q, want %q", screen.ID, ui.ID)
 	}
-	if screen.Permission != "staff_manager" {
-		t.Errorf("Permission = %q, want %q", screen.Permission, "staff_manager")
+	// La pantalla pide el mismo permiso que sus operaciones: la tabla staff_member.
+	if want := model.ResourceOf(&staffmanager.StaffMemberModel); screen.Permission != want {
+		t.Errorf("Permission = %q, want %q", screen.Permission, want)
 	}
 
 	if screen.Presenter.Description() == "" {

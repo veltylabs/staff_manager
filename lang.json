@@ -1,18 +1,19 @@
 {
   "languages": ["es", "zh", "hi", "ar", "pt", "fr", "de", "ru"],
   "keys": {
-    "Active": ["Activo", "", "", "", "", "", "", ""],
-    "Gestión de personal: perfiles, datos de contacto y credenciales profesionales.": ["Gestión de funcionarios: perfiles, datos de contacto y credenciales profesionales.", "", "", "", "", "", "", ""],
-    "Name": ["Nombre", "", "", "", "", "", "", ""],
-    "Role": ["Rol", "", "", "", "", "", "", ""],
-    "Rut": ["RUT", "", "", "", "", "", "", ""],
-    "Specialty": ["Especialidad", "", "", "", "", "", "", ""],
-    "device id": ["id de equipo", "", "", "", "", "", "", ""],
-    "is required": ["es requerido", "", "", "", "", "", "", ""],
-    "staff id": ["id de funcionario", "", "", "", "", "", "", ""],
-    "staff_manager: staffID and deviceID required": ["staff_manager: staffID y deviceID requeridos", "", "", "", "", "", "", ""],
-    "tenant id": ["id de arrendatario", "", "", "", "", "", "", ""],
-    "updated at": ["actualizado el", "", "", "", "", "", "", ""],
-    "user id": ["id de usuario", "", "", "", "", "", "", ""]
+    "Active": ["Activo", "有效", "सक्रिय", "نشط", "Ativo", "Actif", "Aktiv", "Активен"],
+    "Name": ["Nombre", "姓名", "नाम", "الاسم", "Nome", "Nom", "Vollständiger Name", "Имя"],
+    "Role": ["Rol", "角色", "भूमिका", "الدور", "Função", "Rôle", "Rolle", "Роль"],
+    "Rut": ["RUT", "税号 (RUT)", "आरयूटी", "رقم RUT", "RUT", "RUT", "RUT", "RUT"],
+    "Specialty": ["Especialidad", "专科", "विशेषज्ञता", "التخصص", "Especialidade", "Spécialité", "Fachgebiet", "Специальность"],
+    "Staff": ["Personal", "员工", "कर्मचारी", "الموظفون", "Equipe", "Personnel", "Personal", "Персонал"],
+    "The clinic's staff: profiles, contact details and professional credentials.": ["El personal de la clínica: perfiles, datos de contacto y credenciales profesionales.", "诊所员工：个人资料、联系方式和职业资质。", "क्लिनिक के कर्मचारी: प्रोफ़ाइल, संपर्क विवरण और पेशेवर प्रमाण-पत्र।", "موظفو العيادة: الملفات الشخصية وبيانات الاتصال والمؤهلات المهنية.", "A equipe da clínica: perfis, dados de contato e credenciais profissionais.", "Le personnel de la clinique : profils, coordonnées et qualifications professionnelles.", "Das Personal der Klinik: Profile, Kontaktdaten und berufliche Qualifikationen.", "Персонал клиники: профили, контактные данные и профессиональные квалификации."],
+    "device id": ["id de equipo", "设备 ID", "डिवाइस आईडी", "معرّف الجهاز", "ID do dispositivo", "ID de l'appareil", "Geräte-ID", "ID устройства"],
+    "is required": ["es requerido", "为必填项", "आवश्यक है", "مطلوب", "é obrigatório", "est obligatoire", "ist erforderlich", "обязательно"],
+    "staff id": ["id de funcionario", "员工 ID", "कर्मचारी आईडी", "معرّف الموظف", "ID do funcionário", "ID du membre du personnel", "Mitarbeiter-ID", "ID сотрудника"],
+    "staff_manager: staffID and deviceID required": ["staff_manager: staffID y deviceID requeridos", "staff_manager：需要 staffID 和 deviceID", "staff_manager: staffID और deviceID आवश्यक हैं", "staff_manager: يلزم staffID و deviceID", "staff_manager: staffID e deviceID são obrigatórios", "staff_manager : staffID et deviceID requis", "staff_manager: staffID und deviceID erforderlich", "staff_manager: требуются staffID и deviceID"],
+    "tenant id": ["id de arrendatario", "租户 ID", "टेनेंट आईडी", "معرّف المستأجر", "ID do locatário", "ID du locataire", "Mandanten-ID", "ID арендатора"],
+    "updated at": ["actualizado el", "更新时间", "अद्यतन समय", "تاريخ التحديث", "atualizado em", "mis à jour le", "aktualisiert am", "обновлено"],
+    "user id": ["id de usuario", "用户 ID", "उपयोगकर्ता आईडी", "معرّف المستخدم", "ID do usuário", "ID utilisateur", "Benutzer-ID", "ID пользователя"]
   }
 }
