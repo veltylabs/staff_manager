@@ -2,8 +2,9 @@ package staffmanager
 
 import (
 	"webtyp.com/model"
-	"webtyp.com/orm"
 	"webtyp.com/router"
+	"webtyp.com/rpc"
+	"webtyp.com/view"
 )
 
 const (
@@ -22,27 +23,32 @@ const ModelName = "staff_manager"
 func (m *Module) ModelName() string { return ModelName }
 
 func (m *Module) MountOperations(reg router.OperationRegistry) {
-	reg.Operation(OpListStaff, m.opListStaff).Requires("staff_manager", model.Read).Accepts(&ListStaffArgs{})
-	reg.Operation(OpGetStaff, m.opGetStaff).Requires("staff_manager", model.Read).Accepts(&GetStaffArgs{})
-	reg.Operation(OpUpsertStaff, m.opUpsertStaff).Requires("staff_manager", model.Create|model.Update).Accepts(&StaffMember{})
-	reg.Operation(OpDeleteStaff, m.opDeleteStaff).Requires("staff_manager", model.Delete).Accepts(&GetStaffArgs{})
+	res := model.ResourceOf(&StaffMemberModel)
+	reg.Operation(OpListStaff, m.opListStaff).Requires(res, model.Read).Accepts(nil)
+	reg.Operation(OpGetStaff, m.opGetStaff).Requires(res, model.Read).Accepts(&GetStaffArgs{})
+
+	view.MountSave(reg, OpUpsertStaff, func(s *StaffMember) error {
+		out, err := m.UpsertStaff(*s)
+		*s = out
+		return err
+	}).Requires(res, model.Create|model.Update)
+
+	view.MountDelete(reg, OpDeleteStaff, func(ids []string) error {
+		for _, id := range ids {
+			if err := m.DeleteStaff(m.tenantID, id); err != nil {
+				return err
+			}
+		}
+		return nil
+	}).Requires(res, model.Delete)
 }
 
 var _ router.OperationModule = (*Module)(nil)
 
 func (m *Module) opListStaff(ctx router.Context) {
-	var args ListStaffArgs
-	if err := ctx.Decode(&args); err != nil {
-		ctx.WriteStatus(400)
-		return
-	}
-	tenantID := args.TenantId
-	if tenantID == "" {
-		tenantID = m.tenantID
-	}
-	list, err := m.ListStaff(tenantID)
+	list, err := m.ListStaff(m.tenantID)
 	if err != nil {
-		ctx.WriteStatus(500)
+		rpc.WriteError(ctx, err)
 		return
 	}
 	l := make(StaffMemberList, len(list))
@@ -51,71 +57,26 @@ func (m *Module) opListStaff(ctx router.Context) {
 		l[i] = &v
 	}
 	if err := ctx.Encode(&l); err != nil {
-		ctx.WriteStatus(500)
+		rpc.WriteError(ctx, err)
 	}
 }
 
 func (m *Module) opGetStaff(ctx router.Context) {
 	var args GetStaffArgs
 	if err := ctx.Decode(&args); err != nil {
-		ctx.WriteStatus(400)
+		rpc.WriteError(ctx, ErrCannotRead)
 		return
 	}
-	s, err := m.GetStaff(args.TenantId, args.Id)
+	tenantID := args.TenantId
+	if tenantID == "" {
+		tenantID = m.tenantID
+	}
+	s, err := m.GetStaff(tenantID, args.Id)
 	if err != nil {
-		if e, ok := err.(domainError); ok && e == ErrNotFound {
-			ctx.WriteStatus(404)
-		} else {
-			ctx.WriteStatus(500)
-		}
+		rpc.WriteError(ctx, err)
 		return
 	}
 	if err := ctx.Encode(&s); err != nil {
-		ctx.WriteStatus(500)
+		rpc.WriteError(ctx, err)
 	}
-}
-
-func (m *Module) opUpsertStaff(ctx router.Context) {
-	var s StaffMember
-	if err := ctx.Decode(&s); err != nil {
-		ctx.WriteStatus(400)
-		return
-	}
-	created, err := m.UpsertStaff(s)
-	if err != nil {
-		ctx.WriteStatus(400)
-		return
-	}
-	if err := ctx.Encode(&created); err != nil {
-		ctx.WriteStatus(500)
-	}
-}
-
-func (m *Module) opDeleteStaff(ctx router.Context) {
-	var args GetStaffArgs
-	if err := ctx.Decode(&args); err != nil {
-		ctx.WriteStatus(400)
-		return
-	}
-	// Eliminar asignaciones staff_device primero, luego staff
-	var s StaffMember
-	s.Id = args.Id
-	s.TenantId = args.TenantId
-	if s.TenantId == "" {
-		s.TenantId = m.tenantID
-	}
-	// Se necesita obtener y luego eliminar
-	existing, err := m.GetStaff(s.TenantId, s.Id)
-	if err != nil {
-		ctx.WriteStatus(404)
-		return
-	}
-	if err := m.db.Delete(&existing, orm.Eq("id", existing.Id), orm.Eq("tenant_id", existing.TenantId)); err != nil {
-		ctx.WriteStatus(500)
-		return
-	}
-	// también eliminar asignaciones
-	var sd StaffDevice
-	_ = m.db.Delete(&sd, orm.Eq("staff_id", existing.Id))
-	ctx.WriteStatus(200)
 }

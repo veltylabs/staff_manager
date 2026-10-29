@@ -13,10 +13,12 @@ Módulo de gestión de personal para el ecosistema Velty: registro delimitado po
 
 | Op | Acción | Recurso |
 |---|---|---|
-| `list_staff` | read | `staff_manager` |
-| `get_staff` | read | `staff_manager` |
-| `upsert_staff` | create/update | `staff_manager` |
-| `delete_staff` | delete | `staff_manager` |
+| `list_staff` | read | tabla `staff_member` |
+| `get_staff` | read | tabla `staff_member` |
+| `upsert_staff` | create/update | tabla `staff_member` |
+| `delete_staff` | delete | tabla `staff_member` |
+
+Las operaciones de guardar y borrar usan `view.MountSave` y `view.MountDelete`. Los errores de dominio usan `rpc.WriteError`.
 
 ## Esquema
 
@@ -36,7 +38,7 @@ Módulo de gestión de personal para el ecosistema Velty: registro delimitado po
 
 El módulo incluye su vista UI, datos de prueba y demo ejecutable en el navegador:
 
-- El paquete `ui` (`github.com/veltylabs/staff_manager/ui`) exporta `ID = "staff_manager"`, `Label = "Funcionarios"`, `Browser(caller, ids, tenantID)` y `StaffPanel(caller, ids, parentID)`.
+- El paquete `ui` (`github.com/veltylabs/staff_manager/ui`) exporta `ID = "staff_manager"`, `Label = "Staff"`, `Browser(caller, ids, tenantID)` y `StaffPanel(caller, ids, parentID)`.
 - El paquete `seed` (`github.com/veltylabs/staff_manager/seed`) exporta `Load(m, tenantID) (Data, error)` para poblar los miembros del personal iniciales de la demo.
 - El paquete `web` (`github.com/veltylabs/staff_manager/web`) contiene la demo independiente en WebAssembly para el navegador.
 

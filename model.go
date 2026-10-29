@@ -46,12 +46,9 @@ var GetStaffArgsModel = model.Definition{
 	},
 }
 
-type domainError string
-
-func (e domainError) Error() string { return string(e) }
-
 const (
-	ErrNotFound domainError = "staff not found"
+	ErrNotFound   model.NotFound = "staff not found"
+	ErrCannotRead model.Invalid  = "staff_manager: cannot read the request"
 )
 
 const (

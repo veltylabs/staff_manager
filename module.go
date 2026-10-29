@@ -185,6 +185,16 @@ func (m *Module) GetStaff(tenantID, id string) (StaffMember, error) {
 	return s, nil
 }
 
+func (m *Module) DeleteStaff(tenantID, id string) error {
+	existing, err := m.GetStaff(tenantID, id)
+	if err != nil {
+		return err
+	}
+	var sd StaffDevice
+	_ = m.db.Delete(&sd, orm.Eq("staff_id", existing.Id))
+	return m.db.Delete(&existing, orm.Eq("id", existing.Id), orm.Eq("tenant_id", existing.TenantId))
+}
+
 // StaffCard devuelve lo que se puede mostrar al público de un profesional:
 // nombre, especialidad y si está activo. Nunca RUT, usuario, dispositivos ni
 // contacto. Satisface StaffReader.StaffCard de appointment_booking
@@ -215,7 +225,7 @@ func (m *Module) StaffExists(tenantID, staffID string) (bool, error) {
 	}
 	_, err := m.GetStaff(tenantID, staffID)
 	if err != nil {
-		if e, ok := err.(domainError); ok && e == ErrNotFound {
+		if err == ErrNotFound {
 			return false, nil
 		}
 		return false, err

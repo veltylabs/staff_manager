@@ -105,3 +105,7 @@ GOPRIVATE=webtyp.com/*,github.com/veltylabs/* GOFLAGS=-mod=mod gotest
 | 4 | `ui/*`, `lang.json` | `langc sync .` clean |
 | 5 | `tests/*` | suite green |
 | 6 | `README.md` | text present |
+
+## Executor notes
+
+- Skipped the demo screenshot part in Stage 5 as there is no easy manual browser snapshot set up for the manual demo test environment.
