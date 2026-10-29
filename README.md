@@ -20,6 +20,8 @@ Módulo de gestión de personal para el ecosistema Velty: registro delimitado po
 
 Las operaciones de guardar y borrar usan `view.MountSave` y `view.MountDelete`. Los errores de dominio usan `rpc.WriteError`.
 
+Este módulo no importa ningún otro módulo: los equipos de cada persona se guardan como ids sueltos (`staff_device.device_id`) y la app conecta `device_manager` por `Deps.Devices` (interfaz `DeviceReader`).
+
 El tenant lo pone siempre el servidor (`Deps.TenantID`): las operaciones no leen `tenant_id` de la petición, y un registro que llega con otro tenant se guarda en el de esta instalación.
 
 ## Esquema

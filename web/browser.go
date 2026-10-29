@@ -3,8 +3,6 @@
 package main
 
 import (
-	devicemanager "github.com/veltylabs/device_manager"
-	deviceseed "github.com/veltylabs/device_manager/seed"
 	staffmanager "github.com/veltylabs/staff_manager"
 	"github.com/veltylabs/staff_manager/seed"
 	"github.com/veltylabs/staff_manager/ui"
@@ -29,34 +27,22 @@ func main() {
 	db := orm.New(mem.New())
 	broker := &mock.Broker{}
 
-	dm, err := devicemanager.New(db, devicemanager.Deps{
-		IDs:       ids,
-		Publisher: broker,
-		TenantID:  demoTenantID,
-	})
-	if err != nil {
-		panic(err)
-	}
-
 	sm, err := staffmanager.New(db, staffmanager.Deps{
 		IDs:         ids,
 		Publisher:   broker,
 		TenantID:    demoTenantID,
 		ValidateRUT: trustedip.ValidateRUT,
-		Devices:     devicemanager.IPLocator{Devices: dm, TenantID: demoTenantID},
+		Devices:     demoDevices{},
 	})
 	if err != nil {
 		panic(err)
 	}
 
-	if _, err := deviceseed.Load(dm, demoTenantID); err != nil {
-		panic(err)
-	}
 	if _, err := seed.Load(sm, demoTenantID); err != nil {
 		panic(err)
 	}
 
-	caller := loopback.WithTenant(demoTenantID, sm, dm)
+	caller := loopback.WithTenant(demoTenantID, sm)
 	screens := ui.Screens(caller)
 
 	appNode := html.Div().Child(
@@ -67,3 +53,9 @@ func main() {
 	Append("body", appNode)
 	select {}
 }
+
+// demoDevices reemplaza a device_manager en esta demo: ningún equipo está registrado, así que
+// ninguna IP inicia sesión. La app real conecta device_manager por Deps.Devices.
+type demoDevices struct{}
+
+func (demoDevices) FindByIP(string) (string, bool) { return "", false }

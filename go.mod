@@ -3,7 +3,6 @@ module github.com/veltylabs/staff_manager
 go 1.26.8
 
 require (
-	github.com/veltylabs/device_manager v0.2.86
 	webtyp.com/auth v0.0.89
 	webtyp.com/ddl v0.0.32
 	webtyp.com/dom v0.13.29
@@ -29,6 +28,5 @@ require (
 	webtyp.com/fetch v0.1.29 // indirect
 	webtyp.com/filepath v0.1.0 // indirect
 	webtyp.com/json v0.5.37 // indirect
-	webtyp.com/network v0.1.2 // indirect
 	webtyp.com/user v0.3.14 // indirect
 )

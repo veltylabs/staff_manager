@@ -1,7 +1,6 @@
 package staffmanager
 
 import (
-	"github.com/veltylabs/device_manager"
 	"webtyp.com/input"
 	"webtyp.com/model"
 )
@@ -28,7 +27,9 @@ var StaffDeviceModel = model.Definition{
 	Name: "staff_device",
 	Fields: model.Fields{
 		{Name: "staff_id", Type: model.Text(), Ref: &StaffMemberModel, DB: &model.FieldDB{PK: true, RefColumn: "id"}, NotNull: true},
-		{Name: "device_id", Type: model.Text(), Ref: &devicemanager.DeviceModel, DB: &model.FieldDB{PK: true, RefColumn: "id"}, NotNull: true},
+		// Id suelto del equipo (device_manager): este módulo no importa otro módulo; la app conecta
+		// los equipos por Deps.Devices.
+		{Name: "device_id", Type: model.Text(), DB: &model.FieldDB{PK: true}, NotNull: true},
 	},
 }
 

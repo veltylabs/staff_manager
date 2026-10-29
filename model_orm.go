@@ -172,7 +172,6 @@ func ReadAllStaffDevice(qb *orm.QB) (StaffDeviceList, error) {
 func (m *StaffDevice) SchemaExt() []model.FieldExt {
 	return []model.FieldExt{
 		{Field: StaffDeviceModel.Fields[0], Ref: "staff_member", RefColumn: "id", OnDelete: ""},
-		{Field: StaffDeviceModel.Fields[1], Ref: "device", RefColumn: "id", OnDelete: ""},
 	}
 }
 
