@@ -3,7 +3,7 @@ module github.com/veltylabs/staff_manager
 go 1.26.8
 
 require (
-	webtyp.com/appkit v0.2.1
+	webtyp.com/appkit v0.2.4
 	webtyp.com/auth v0.0.102
 	webtyp.com/ddl v0.0.39
 	webtyp.com/dom v0.13.29
