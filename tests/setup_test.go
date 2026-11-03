@@ -31,14 +31,26 @@ var _ events.Publisher = (*mockPublisher)(nil)
 // fakeDevices es el doble de prueba de DeviceReader: un mapa en memoria ip->deviceID,
 // que representa la lectura entre módulos que staff_manager realiza a
 // device_manager a través de la raíz de composición de la aplicación real.
-type fakeDevices struct{ byIP map[string]string }
+type fakeDevices struct {
+	byIP       map[string]string
+	registered []string // IPs registradas por RegisterComputer, en orden
+}
 
 func (f *fakeDevices) FindByIP(ip string) (string, bool) {
 	id, ok := f.byIP[ip]
 	return id, ok
 }
 
+// RegisterComputer es el doble de DeviceRegistrar: anota el computador en el mismo mapa.
+func (f *fakeDevices) RegisterComputer(name, ip string) (string, error) {
+	id := "device-" + ip
+	f.byIP[ip] = id
+	f.registered = append(f.registered, ip)
+	return id, nil
+}
+
 var _ staffmanager.DeviceReader = (*fakeDevices)(nil)
+var _ staffmanager.DeviceRegistrar = (*fakeDevices)(nil)
 
 // identityValidateRUT es el doble de prueba para Deps.ValidateRUT: transmite cualquier
 // valor no vacío sin cambios, rechazando únicamente el literal "bad" — el
@@ -63,6 +75,7 @@ func setup(t *testing.T, devices *fakeDevices) *staffmanager.Module {
 		TenantID:    testTenant,
 		ValidateRUT: identityValidateRUT,
 		Devices:     devices,
+		Registrar:   devices,
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)

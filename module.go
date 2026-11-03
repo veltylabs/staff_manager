@@ -12,12 +12,21 @@ type DeviceReader interface {
 	FindByIP(ip string) (string, bool)
 }
 
+// DeviceRegistrar registra un computador con su IP y devuelve su id: lo usa el alta
+// del primer administrador (RegisterFirstAdmin). device_manager lo implementa.
+//
+// Ejemplo: id, err := registrar.RegisterComputer("Ana (admin)", "192.168.1.50")
+type DeviceRegistrar interface {
+	RegisterComputer(name, ip string) (deviceID string, err error)
+}
+
 type Deps struct {
 	IDs         model.IDGenerator
 	Publisher   events.Publisher
 	TenantID    string
 	ValidateRUT func(string) (string, error)
 	Devices     DeviceReader
+	Registrar   DeviceRegistrar // opcional: sin él, RegisterFirstAdmin falla
 }
 
 type Module struct {
@@ -27,6 +36,7 @@ type Module struct {
 	tenantID    string
 	validateRUT func(string) (string, error)
 	devices     DeviceReader
+	registrar   DeviceRegistrar
 }
 
 func depErr(name string) error {
@@ -50,6 +60,7 @@ func New(db *orm.DB, deps Deps) (*Module, error) {
 		tenantID:    deps.TenantID,
 		validateRUT: deps.ValidateRUT,
 		devices:     deps.Devices,
+		registrar:   deps.Registrar,
 	}, nil
 }
 
