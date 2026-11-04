@@ -2,8 +2,10 @@
 PLAN: "feat: StaffByUser for clinical_encounter; required contracts move to interfaces.go"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 2264374540799879527
+PR: https://github.com/veltylabs/staff_manager/pull/12
+REVIEWED_COMMIT: 3585b67279fb5f04ae750482105df55b17bae50d
 ---
 
 > Read AGENTS.md at the repo root before any change.
