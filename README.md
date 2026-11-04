@@ -8,6 +8,9 @@ Módulo de gestión de personal para el ecosistema Velty: registro delimitado po
 - `IsTrustedIP(userID, ip string) bool` (`auth.TrustedIPStore`): Responde si la IP pertenece a un dispositivo asignado a `userID` para inicio de sesión por RUT en LAN.
 - `StaffExists(tenantID, staffID string) (bool, error)` (`StaffReader`): Responde si un miembro del personal existe y pertenece al tenant indicado. Retorna `(false, nil)` cuando no existe, reservando errores no nulos para fallos reales de almacenamiento.
 - `StaffCard(tenantID, staffID string) (name, specialty string, active bool, err error)` (`StaffReader`): Devuelve la tarjeta pública del profesional (nombre, especialidad, activo) sin datos personales.
+- `StaffByUser(tenantID, userID string) (staffID, name, specialty string, found bool, err error)` (`DoctorReader`): Devuelve el profesional asociado a una cuenta de usuario, requerido por clinical_encounter.
+
+*Nota: Los contratos o interfaces que este módulo requiere de otros (como `DeviceReader` o `DeviceRegistrar`) se encuentran en `interfaces.go`.*
 
 ## Operaciones (Ops)
 
