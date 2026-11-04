@@ -2,6 +2,8 @@
 PLAN: "feat: StaffByUser for clinical_encounter; required contracts move to interfaces.go"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 2264374540799879527
 ---
 
 > Read AGENTS.md at the repo root before any change.
