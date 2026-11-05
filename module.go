@@ -8,18 +8,6 @@ import (
 	"webtyp.com/time"
 )
 
-type DeviceReader interface {
-	FindByIP(ip string) (string, bool)
-}
-
-// DeviceRegistrar registra un computador con su IP y devuelve su id: lo usa el alta
-// del primer administrador (RegisterFirstAdmin). device_manager lo implementa.
-//
-// Ejemplo: id, err := registrar.RegisterComputer("Ana (admin)", "192.168.1.50")
-type DeviceRegistrar interface {
-	RegisterComputer(name, ip string) (deviceID string, err error)
-}
-
 type Deps struct {
 	IDs         model.IDGenerator
 	Publisher   events.Publisher
@@ -225,6 +213,26 @@ func (m *Module) StaffCard(tenantID, staffID string) (name, specialty string, ac
 		return "", "", false, err
 	}
 	return s.Name, s.Specialty, s.IsActive, nil
+}
+
+// StaffByUser devuelve el profesional cuya cuenta de usuario es userID. Satisface
+// DoctorReader de clinical_encounter estructuralmente. Sin fila ⇒ found=false y err=nil;
+// solo una falla de la base devuelve error.
+// Ejemplo: staffID, name, spec, ok, err := m.StaffByUser("t1", "u1")
+func (m *Module) StaffByUser(tenantID, userID string) (staffID, name, specialty string, found bool, err error) {
+	if tenantID == "" || userID == "" {
+		return "", "", "", false, nil
+	}
+	qb := m.db.Query(&StaffMember{}).Where(StaffMember_.TenantId).Eq(tenantID).Where(StaffMember_.UserId).Eq(userID)
+	rows, err := ReadAllStaffMember(qb)
+	if err != nil && !orm.IsNotFound(err) {
+		return "", "", "", false, err
+	}
+	if len(rows) == 0 {
+		return "", "", "", false, nil
+	}
+	s := rows[0]
+	return s.Id, s.Name, s.Specialty, true, nil
 }
 
 // StaffExists reporta si un miembro del personal con este id pertenece a este
