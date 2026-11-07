@@ -22,7 +22,7 @@ func TestScreen_SaveAndDelete(t *testing.T) {
 
 	// Create view list
 	v := view.NewCallerLister(caller,
-		view.Ops{Module: staffmanager.ModelName, List: staffmanager.OpListStaff, Save: staffmanager.OpUpsertStaff, Delete: staffmanager.OpDeleteStaff},
+		view.Ops{Module: staffmanager.ModelName, List: staffmanager.OpListStaff, Save: staffmanager.OpUpsertStaff, Delete: staffmanager.OpDeleteStaff, Page: view.Page{First: view.All}},
 		func() model.ModelSlice { return &staffmanager.StaffMemberList{} })
 
 	// 1. Save
@@ -49,7 +49,7 @@ func TestScreen_SaveAndDelete(t *testing.T) {
 	err := saveErr
 
 	// Wait a moment for save or get latest
-	list, err := m.ListStaff(testTenant)
+	list, err := m.ListStaff(testTenant, "", "", view.MaxPage)
 	if err != nil {
 		t.Fatalf("ListStaff: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestScreen_SaveIgnoresTenantFromRequest(t *testing.T) {
 	m := setup(t, nil)
 	caller := view.NewRecords().Caller(loopback.ActingAs(testTenant, "user-100", m))
 	v := view.NewCallerLister(caller,
-		view.Ops{Module: staffmanager.ModelName, List: staffmanager.OpListStaff, Save: staffmanager.OpUpsertStaff, Delete: staffmanager.OpDeleteStaff},
+		view.Ops{Module: staffmanager.ModelName, List: staffmanager.OpListStaff, Save: staffmanager.OpUpsertStaff, Delete: staffmanager.OpDeleteStaff, Page: view.Page{First: view.All}},
 		func() model.ModelSlice { return &staffmanager.StaffMemberList{} })
 
 	const otherTenant = "other-tenant"
@@ -106,14 +106,14 @@ func TestScreen_SaveIgnoresTenantFromRequest(t *testing.T) {
 		t.Fatalf("Save failed: %v", saveErr)
 	}
 
-	mine, err := m.ListStaff(testTenant)
+	mine, err := m.ListStaff(testTenant, "", "", view.MaxPage)
 	if err != nil {
 		t.Fatalf("ListStaff(%s): %v", testTenant, err)
 	}
 	if len(mine) != 1 {
 		t.Fatalf("stored under the server's tenant: got %d rows, want 1", len(mine))
 	}
-	other, err := m.ListStaff(otherTenant)
+	other, err := m.ListStaff(otherTenant, "", "", view.MaxPage)
 	if err != nil {
 		t.Fatalf("ListStaff(%s): %v", otherTenant, err)
 	}

@@ -1,6 +1,7 @@
 package staffmanager
 
 import (
+	"strings"
 	"webtyp.com/events"
 	"webtyp.com/fmt"
 	"webtyp.com/model"
@@ -258,8 +259,24 @@ func (m *Module) StaffExists(tenantID, staffID string) (bool, error) {
 	return true, nil
 }
 
-func (m *Module) ListStaff(tenantID string) ([]StaffMember, error) {
-	qb := m.db.Query(&StaffMember{}).Where("tenant_id").Eq(tenantID)
+func (m *Module) ListStaff(tenantID, search, after string, limit int64) ([]StaffMember, error) {
+	qb := m.db.Query(&StaffMember{}).Where(StaffMember_.TenantId).Eq(tenantID)
+	if search != "" {
+		if strings.Contains(search, "-") || (len(search) > 0 && search[0] >= '0' && search[0] <= '9') {
+			normalized, _ := m.validateRUT(search)
+			if normalized != "" {
+				qb = qb.Where(StaffMember_.Rut).Eq(normalized)
+			} else {
+				qb = qb.Where(StaffMember_.Name).Like("%" + search + "%")
+			}
+		} else {
+			qb = qb.Where(StaffMember_.Name).Like("%" + search + "%")
+		}
+	}
+	if after != "" {
+		qb = qb.Where(StaffMember_.Id).Gt(after)
+	}
+	qb = qb.OrderBy(StaffMember_.Id).Asc().Limit(int(limit))
 	results, err := ReadAllStaffMember(qb)
 	if err != nil {
 		return nil, err

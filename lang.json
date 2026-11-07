@@ -1,6 +1,7 @@
 {
   "languages": ["es", "zh", "hi", "ar", "pt", "fr", "de", "ru"],
   "keys": {
+    "Role": ["", "", "", "", "", "", "", ""],
     "Rut": ["RUT", "税号 (RUT)", "आरयूटी", "رقم RUT", "", "", "", ""],
     "Specialty": ["Especialidad", "专科", "विशेषज्ञता", "التخصص", "Especialidade", "Spécialité", "Fachgebiet", "Специальность"],
     "Staff": ["Personal", "员工", "कर्मचारी", "الموظفون", "Equipe", "Personnel", "Personal", "Персонал"],

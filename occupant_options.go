@@ -1,13 +1,17 @@
 package staffmanager
 
-import "webtyp.com/fmt"
+import (
+	"webtyp.com/fmt"
+	"webtyp.com/view"
+)
 
 // OccupantOptions entrega el personal activo como opciones {id, nombre}: es lo
 // que room_layout pide como ocupantes de un turno (roomlayout.OccupantReader).
 //
 // Ejemplo: opts, err := staff.OccupantOptions(tenantID)
+
 func (m *Module) OccupantOptions(tenantID string) ([]fmt.KeyValue, error) {
-	list, err := m.ListStaff(tenantID)
+	list, err := m.ListStaff(tenantID, "", "", view.MaxPage)
 	if err != nil {
 		return nil, err
 	}
