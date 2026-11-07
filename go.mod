@@ -59,7 +59,7 @@ require (
 	webtyp.com/icons v0.0.38 // indirect
 	webtyp.com/json v0.5.37 // indirect
 	webtyp.com/keyring v0.2.9 // indirect
-	webtyp.com/layout v0.3.99 // indirect
+	webtyp.com/layout v0.3.108 // indirect
 	webtyp.com/mcp v0.3.20 // indirect
 	webtyp.com/msgtype v0.1.0 // indirect
 	webtyp.com/pwa v0.2.13 // indirect
