@@ -21,7 +21,7 @@ require (
 	webtyp.com/svg v0.3.33
 	webtyp.com/time v0.6.4
 	webtyp.com/unixid v0.3.1
-	webtyp.com/view v0.6.64
+	webtyp.com/view v0.6.65
 )
 
 require (
@@ -59,7 +59,7 @@ require (
 	webtyp.com/icons v0.0.38 // indirect
 	webtyp.com/json v0.5.37 // indirect
 	webtyp.com/keyring v0.2.9 // indirect
-	webtyp.com/layout v0.3.107 // indirect
+	webtyp.com/layout v0.3.108 // indirect
 	webtyp.com/mcp v0.3.20 // indirect
 	webtyp.com/msgtype v0.1.0 // indirect
 	webtyp.com/pwa v0.2.13 // indirect
