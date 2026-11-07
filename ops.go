@@ -24,7 +24,7 @@ func (m *Module) ModelName() string { return ModelName }
 
 func (m *Module) MountOperations(reg router.OperationRegistry) {
 	res := model.ResourceOf(&StaffMemberModel)
-	reg.Operation(OpListStaff, m.opListStaff).Requires(res, model.Read).Accepts(nil)
+	reg.Operation(OpListStaff, m.opListStaff).Requires(res, model.Read).Accepts(&view.ListArgs{})
 	reg.Operation(OpGetStaff, m.opGetStaff).Requires(res, model.Read).Accepts(&GetStaffArgs{})
 
 	view.MountSave(reg, OpUpsertStaff, func(s *StaffMember) error {
@@ -47,7 +47,12 @@ func (m *Module) MountOperations(reg router.OperationRegistry) {
 var _ router.OperationModule = (*Module)(nil)
 
 func (m *Module) opListStaff(ctx router.Context) {
-	list, err := m.ListStaff(m.tenantID)
+	var args view.ListArgs
+	if err := ctx.Decode(&args); err != nil {
+		rpc.WriteError(ctx, ErrCannotRead)
+		return
+	}
+	list, err := m.ListStaff(m.tenantID, args.Search, args.After, view.Cap(args.Limit))
 	if err != nil {
 		rpc.WriteError(ctx, err)
 		return
