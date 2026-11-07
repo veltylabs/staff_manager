@@ -57,7 +57,7 @@ require (
 	webtyp.com/font v0.0.5 // indirect
 	webtyp.com/form v0.4.61 // indirect
 	webtyp.com/icons v0.0.38 // indirect
-	webtyp.com/json v0.5.37 // indirect
+	webtyp.com/json v0.5.40 // indirect
 	webtyp.com/keyring v0.2.9 // indirect
 	webtyp.com/layout v0.3.108 // indirect
 	webtyp.com/mcp v0.3.20 // indirect
