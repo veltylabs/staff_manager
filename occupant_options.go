@@ -2,7 +2,6 @@ package staffmanager
 
 import (
 	"webtyp.com/fmt"
-	"webtyp.com/view"
 )
 
 // OccupantOptions entrega el personal activo como opciones {id, nombre}: es lo
@@ -11,7 +10,7 @@ import (
 // Ejemplo: opts, err := staff.OccupantOptions(tenantID)
 
 func (m *Module) OccupantOptions(tenantID string) ([]fmt.KeyValue, error) {
-	list, err := m.ListStaff(tenantID, "", "", view.MaxPage)
+	list, err := m.ListStaff(tenantID, "", "", 1000)
 	if err != nil {
 		return nil, err
 	}

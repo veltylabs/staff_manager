@@ -3,12 +3,12 @@ package tests
 import (
 	"testing"
 
+	staffmanager "github.com/veltylabs/staff_manager"
 	"webtyp.com/events"
 	"webtyp.com/fmt"
 	"webtyp.com/model"
 	"webtyp.com/orm"
 	"webtyp.com/storage/mem"
-	staffmanager "github.com/veltylabs/staff_manager"
 )
 
 const testTenant = "test-tenant"
@@ -54,7 +54,7 @@ var _ staffmanager.DeviceRegistrar = (*fakeDevices)(nil)
 
 // identityValidateRUT es el doble de prueba para Deps.ValidateRUT: transmite cualquier
 // valor no vacío sin cambios, rechazando únicamente el literal "bad" — el
-// algoritmo de suma de verificación real vive en webtyp.com/auth/trusted_ip y se
+// algoritmo de suma de verificación real vive en webtyp.com/input y se
 // omite deliberadamente aquí (lista blanca del módulo).
 func identityValidateRUT(raw string) (string, error) {
 	if raw == "bad" {

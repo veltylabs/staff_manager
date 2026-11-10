@@ -13,13 +13,13 @@ import (
 
 type mockCaller struct{}
 
-func (c *mockCaller) Call(route string, args model.Encodable, res model.Decodable, cb func(error)) {
+func (c *mockCaller) Call(op router.Operation, args model.Encodable, res model.Decodable, cb func(error)) {
 	if cb != nil {
 		cb(nil)
 	}
 }
 
-func (c *mockCaller) Dispatch(route string, args model.Encodable) {}
+func (c *mockCaller) Dispatch(op router.Operation, args model.Encodable) {}
 
 var _ router.Caller = (*mockCaller)(nil)
 
@@ -49,11 +49,11 @@ func TestUI_Screens(t *testing.T) {
 	}
 }
 
-func TestUI_ViewReloadCallsListStaff(t *testing.T) {
-	var calledRoute string
+func TestUI_ViewReloadReadsStaff(t *testing.T) {
+	var called router.Operation
 	caller := &customCaller{
-		callFn: func(route string, args model.Encodable, res model.Decodable, cb func(error)) {
-			calledRoute = route
+		callFn: func(op router.Operation, args model.Encodable, res model.Decodable, cb func(error)) {
+			called = op
 			if cb != nil {
 				cb(nil)
 			}
@@ -63,17 +63,18 @@ func TestUI_ViewReloadCallsListStaff(t *testing.T) {
 	v := staffmanager.NewView(caller)
 	v.Reload(nil)
 
-	if calledRoute != "staff_manager.list_staff" {
-		t.Errorf("Reload called route %q, want %q", calledRoute, "staff_manager.list_staff")
+	want := router.Operation{Module: staffmanager.ModelName, Entity: (&staffmanager.StaffMember{}).ModelName(), Action: model.Read}
+	if called != want {
+		t.Errorf("Reload called %+v, want %+v", called, want)
 	}
 }
 
 type customCaller struct {
-	callFn func(route string, args model.Encodable, res model.Decodable, cb func(error))
+	callFn func(op router.Operation, args model.Encodable, res model.Decodable, cb func(error))
 }
 
-func (c *customCaller) Call(route string, args model.Encodable, res model.Decodable, cb func(error)) {
-	c.callFn(route, args, res, cb)
+func (c *customCaller) Call(op router.Operation, args model.Encodable, res model.Decodable, cb func(error)) {
+	c.callFn(op, args, res, cb)
 }
 
-func (c *customCaller) Dispatch(route string, args model.Encodable) {}
+func (c *customCaller) Dispatch(op router.Operation, args model.Encodable) {}

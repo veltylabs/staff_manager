@@ -5,6 +5,7 @@ package staffmanager
 import (
 	"webtyp.com/model"
 	"webtyp.com/orm"
+	"webtyp.com/crud"
 	"webtyp.com/time"
 )
 
@@ -64,6 +65,9 @@ func (s *StaffMemberList) DecodeFields(_ model.FieldReader) {}
 func (m *StaffMember) Validate(action byte) error {
 	return model.ValidateFields(action, m)
 }
+
+func (*StaffMember) Allow() model.Action     { return StaffMemberModel.Allow }
+func (*StaffMemberList) Allow() model.Action { return StaffMemberModel.Allow }
 
 func (m *StaffMember) Item() model.Item {
 	return model.Item{ID: m.Id, Label: m.Name, Description: m.Rut}
@@ -144,6 +148,9 @@ func (m *StaffDevice) Validate(action byte) error {
 	return model.ValidateFields(action, m)
 }
 
+func (*StaffDevice) Allow() model.Action     { return StaffDeviceModel.Allow }
+func (*StaffDeviceList) Allow() model.Action { return StaffDeviceModel.Allow }
+
 var StaffDevice_ = struct {
 	StaffId string
 	DeviceId string
@@ -175,36 +182,30 @@ func (m *StaffDevice) SchemaExt() []model.FieldExt {
 	}
 }
 
-type GetStaffArgs struct {
-	Id string
+// ModelName is the module identity: Definition.Name.
+const ModelName = "staff_manager"
+
+func (m *Module) ModelName() string { return ModelName }
+
+// Definition is the module's declaration (definition.go); crud.Mount compares it with what MountOperations mounted.
+func (m *Module) Definition() model.ModuleDefinition { return Definition }
+
+// MountOperations offers every entity of the module: the actions its model allows, with crud's validation and the rules written in rule_*.go.
+func (m *Module) MountOperations(reg crud.Registry) {
+	reg.AddStoredEntity(crud.StoredEntity{
+		Model: &StaffMember{},
+		NewList: func() model.ModelSlice { return &StaffMemberList{} },
+		Store: m.StoreStaffMember(),
+		Rules: StaffMemberModel.Rules,
+		MFA: StaffMemberModel.MFA,
+		Create: func(a crud.CurrentUser, tx crud.Tx, rec model.Model) (crud.RuleAnswer, error) {
+			return rec.(*StaffMember).Create(a, tx, m)
+		},
+		Update: func(a crud.CurrentUser, tx crud.Tx, old, next model.Model, fields []string) (crud.RuleAnswer, error) {
+			return next.(*StaffMember).Update(a, tx, old.(*StaffMember), fields, m)
+		},
+		Delete: func(a crud.CurrentUser, tx crud.Tx, rec model.Model) (crud.RuleAnswer, error) {
+			return rec.(*StaffMember).Delete(a, tx, m)
+		},
+	})
 }
-
-func (m *GetStaffArgs) ModelName() string { return "get_staff_args" }
-
-func (m *GetStaffArgs) Schema() []model.Field { return GetStaffArgsModel.Fields }
-
-func (m *GetStaffArgs) Pointers() []any { return []any{&m.Id} }
-
-func (m *GetStaffArgs) IsNil() bool { return m == nil }
-
-func (m *GetStaffArgs) EncodeFields(w model.FieldWriter) {
-	w.String("id", m.Id)
-}
-
-func (m *GetStaffArgs) DecodeFields(r model.FieldReader) {
-	if v, ok := r.String("id"); ok { m.Id = v }
-}
-
-type GetStaffArgsList []*GetStaffArgs
-
-func (s *GetStaffArgsList) Len() int             { return len(*s) }
-func (s *GetStaffArgsList) At(i int) model.Fielder { return (*s)[i] }
-func (s *GetStaffArgsList) Append() model.Fielder  { v := &GetStaffArgs{}; *s = append(*s, v); return v }
-func (s *GetStaffArgsList) IsNil() bool          { return s == nil }
-func (s *GetStaffArgsList) EncodeFields(_ model.FieldWriter) {}
-func (s *GetStaffArgsList) DecodeFields(_ model.FieldReader) {}
-
-func (m *GetStaffArgs) Validate(action byte) error {
-	return model.ValidateFields(action, m)
-}
-

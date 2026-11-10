@@ -3,19 +3,15 @@
 package module
 
 import (
-	"webtyp.com/appkit"
-	trustedip "webtyp.com/auth/trusted_ip"
-	"webtyp.com/model"
-
 	staffmanager "github.com/veltylabs/staff_manager"
+	"webtyp.com/appkit"
+	"webtyp.com/input"
+	"webtyp.com/model"
+	"webtyp.com/view"
 )
 
-// server es lo que el módulo aporta al servidor: cómo se construye.
-// Necesita un módulo que sepa de equipos (device_manager): en App.Modules va después de él.
 var server = appkit.ModuleServer{Build: build}
-
-// En el servidor el módulo no aporta pantallas.
-var browser appkit.ModuleBrowser
+var browser view.ModuleBrowser
 
 func build(d appkit.Deps) (model.ModuleNaming, error) {
 	devices, err := appkit.Find[staffmanager.DeviceReader](d)
@@ -28,6 +24,6 @@ func build(d appkit.Deps) (model.ModuleNaming, error) {
 	}
 	return staffmanager.New(d.DB, staffmanager.Deps{
 		IDs: d.IDs, Publisher: d.Events, TenantID: d.TenantID,
-		ValidateRUT: trustedip.ValidateRUT, Devices: devices, Registrar: registrar,
+		ValidateRUT: input.NormalizeRUT, Devices: devices, Registrar: registrar,
 	})
 }

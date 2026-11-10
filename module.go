@@ -2,11 +2,12 @@ package staffmanager
 
 import (
 	"strings"
+	"webtyp.com/crud"
 	"webtyp.com/events"
 	"webtyp.com/fmt"
 	"webtyp.com/model"
 	"webtyp.com/orm"
-	"webtyp.com/time"
+	"webtyp.com/storage"
 )
 
 type Deps struct {
@@ -15,13 +16,13 @@ type Deps struct {
 	TenantID    string
 	ValidateRUT func(string) (string, error)
 	Devices     DeviceReader
-	Registrar   DeviceRegistrar // opcional: sin él, RegisterFirstAdmin falla
+	Registrar   DeviceRegistrar
 }
-
 type Module struct {
 	db          *orm.DB
+	store       *orm.Store
+	deviceStore *orm.Store // StaffDevice no tiene tenant_id: se guarda en el almacén global
 	ids         model.IDGenerator
-	pub         events.Publisher
 	tenantID    string
 	validateRUT func(string) (string, error)
 	devices     DeviceReader
@@ -31,7 +32,6 @@ type Module struct {
 func depErr(name string) error {
 	return fmt.Err("staff_manager: Deps."+name, "is required")
 }
-
 func New(db *orm.DB, deps Deps) (*Module, error) {
 	if deps.IDs == nil {
 		return nil, depErr("IDs")
@@ -44,27 +44,22 @@ func New(db *orm.DB, deps Deps) (*Module, error) {
 	}
 	return &Module{
 		db:          db,
+		store:       orm.TenantStore(db, deps.TenantID, deps.IDs),
+		deviceStore: orm.GlobalStore(db, deps.IDs),
 		ids:         deps.IDs,
-		pub:         deps.Publisher,
 		tenantID:    deps.TenantID,
 		validateRUT: deps.ValidateRUT,
 		devices:     deps.Devices,
 		registrar:   deps.Registrar,
 	}, nil
 }
-
-// IsTrustedIP implementa auth.TrustedIPStore. La única pregunta que hace
-// el login es: ¿es ip un dispositivo asignado a userID? Respondido únicamente
-// a través del DeviceReader inyectado — nunca una lectura directa de la tabla
-// de device_manager (ver el comentario de doc de Deps.Devices; la lista blanca
-// del módulo prohíbe importar la forma de almacenamiento de un módulo hermano).
 func (m *Module) IsTrustedIP(userID, ip string) bool {
 	if m.db == nil || userID == "" || ip == "" {
 		return false
 	}
 	var staff StaffMember
-	qb := m.db.Query(&staff).Where("user_id").Eq(userID).Where("tenant_id").Eq(m.tenantID).Where("is_active").Eq(true)
-	if err := qb.ReadOne(); err != nil {
+	err := m.store.ReadAll(func() model.Model { return &StaffMember{} }, crud.Query{Conditions: []storage.Condition{storage.Eq("user_id", userID), storage.Eq("is_active", true)}}, func(mod model.Model) { staff = *(mod.(*StaffMember)) })
+	if err != nil || staff.Id == "" {
 		return false
 	}
 	if m.devices == nil {
@@ -75,138 +70,42 @@ func (m *Module) IsTrustedIP(userID, ip string) bool {
 		return false
 	}
 	var sd StaffDevice
-	return m.db.Query(&sd).Where("staff_id").Eq(staff.Id).Where("device_id").Eq(deviceID).ReadOne() == nil
-}
-
-func (m *Module) UpsertStaff(member StaffMember) (StaffMember, error) {
-	if member.TenantId == "" {
-		member.TenantId = m.tenantID
-	}
-	// Validar RUT
-	normalized, err := m.validateRUT(member.Rut)
+	err = m.deviceStore.ReadAll(func() model.Model { return &StaffDevice{} }, crud.Query{Conditions: []storage.Condition{storage.Eq("staff_id", staff.Id), storage.Eq("device_id", deviceID)}}, func(mod model.Model) { sd = *(mod.(*StaffDevice)) })
 	if err != nil {
-		return StaffMember{}, err
+		return false
 	}
-	member.Rut = normalized
-	member.UpdatedAt = time.NowNano()
-
-	// Si se proporcionó Id, intentar actualizar
-	if member.Id != "" {
-		var existing StaffMember
-		qb := m.db.Query(&existing).Where("id").Eq(member.Id).Where("tenant_id").Eq(member.TenantId)
-		err := qb.ReadOne()
-		if err == nil {
-			// Actualizar
-			existing.Name = member.Name
-			existing.Rut = member.Rut
-			existing.Specialty = member.Specialty
-			existing.Role = member.Role
-			existing.IsActive = member.IsActive
-			existing.UserId = member.UserId
-			existing.UpdatedAt = member.UpdatedAt
-			if err := existing.Validate(model.ActionUpdate); err != nil {
-				return StaffMember{}, err
-			}
-			if err := m.db.Update(&existing, orm.Eq("id", existing.Id), orm.Eq("tenant_id", existing.TenantId)); err != nil {
-				return StaffMember{}, err
-			}
-			return existing, nil
-		}
-		if !orm.IsNotFound(err) {
-			return StaffMember{}, err
-		}
-	}
-	// Verificar existente por tenant+rut o tenant+user_id
-	var existing StaffMember
-	qb := m.db.Query(&existing).Where("tenant_id").Eq(member.TenantId).Where("rut").Eq(member.Rut)
-	err = qb.ReadOne()
-	if err == nil {
-		// Actualizar existente
-		existing.Name = member.Name
-		existing.Specialty = member.Specialty
-		existing.Role = member.Role
-		existing.IsActive = member.IsActive
-		existing.UpdatedAt = member.UpdatedAt
-		if member.UserId != "" {
-			existing.UserId = member.UserId
-		}
-		if err := existing.Validate(model.ActionUpdate); err != nil {
-			return StaffMember{}, err
-		}
-		if err := m.db.Update(&existing, orm.Eq("id", existing.Id), orm.Eq("tenant_id", existing.TenantId)); err != nil {
-			return StaffMember{}, err
-		}
-		return existing, nil
-	}
-	if !orm.IsNotFound(err) && err != nil {
-		return StaffMember{}, err
-	}
-	// Crear nuevo
-	if member.Id == "" {
-		member.Id = m.ids.NewID()
-	}
-	if err := member.Validate(model.ActionCreate); err != nil {
-		return StaffMember{}, err
-	}
-	if err := m.db.Create(&member); err != nil {
-		return StaffMember{}, err
-	}
-	return member, nil
+	return sd.StaffId != ""
 }
-
 func (m *Module) AssignDevice(staffID, deviceID string) error {
 	if staffID == "" || deviceID == "" {
 		return fmt.Err("staff_manager: staffID and deviceID required")
 	}
-	// Verificar si ya existe
-	var sd StaffDevice
-	qb := m.db.Query(&sd).Where("staff_id").Eq(staffID).Where("device_id").Eq(deviceID)
-	err := qb.ReadOne()
-	if err == nil {
-		return nil // ya asignado
-	}
-	if !orm.IsNotFound(err) && err != nil {
-		return err
-	}
-	sd = StaffDevice{StaffId: staffID, DeviceId: deviceID}
-	return m.db.Create(&sd)
+	return m.deviceStore.Atomic(func(tx crud.Tx) error {
+		var sd StaffDevice
+		err := tx.ReadAll(func() model.Model { return &StaffDevice{} }, crud.Query{Conditions: []storage.Condition{storage.Eq("staff_id", staffID), storage.Eq("device_id", deviceID)}}, func(mod model.Model) { sd = *(mod.(*StaffDevice)) })
+		if err == nil && sd.StaffId != "" {
+			return nil
+		}
+		sd = StaffDevice{StaffId: staffID, DeviceId: deviceID}
+		return tx.Create(&sd)
+	})
 }
-
 func (m *Module) GetStaff(tenantID, id string) (StaffMember, error) {
+	if tenantID != m.tenantID {
+		return StaffMember{}, ErrNotFound
+	}
 	var s StaffMember
-	qb := m.db.Query(&s).Where("id").Eq(id).Where("tenant_id").Eq(tenantID)
-	err := qb.ReadOne()
+	err := m.store.ReadOne(&s, id)
 	if err != nil {
-		if orm.IsNotFound(err) {
+		if model.KindOf(err) == model.ErrorNotFound {
 			return StaffMember{}, ErrNotFound
 		}
 		return StaffMember{}, err
 	}
 	return s, nil
 }
-
-// DeleteStaff borra a un miembro del personal junto con sus equipos asignados
-// (filas de staff_device). Devuelve ErrNotFound si no existe en ese tenant.
-//
-// Ejemplo: err := staff.DeleteStaff("tenant-1", id)
-func (m *Module) DeleteStaff(tenantID, id string) error {
-	existing, err := m.GetStaff(tenantID, id)
-	if err != nil {
-		return err
-	}
-	var sd StaffDevice
-	if err := m.db.Delete(&sd, orm.Eq("staff_id", existing.Id)); err != nil {
-		return err
-	}
-	return m.db.Delete(&existing, orm.Eq("id", existing.Id), orm.Eq("tenant_id", existing.TenantId))
-}
-
-// StaffCard devuelve lo que se puede mostrar al público de un profesional:
-// nombre, especialidad y si está activo. Nunca RUT, usuario, dispositivos ni
-// contacto. Satisface StaffReader.StaffCard de appointment_booking
-// estructuralmente. Ausente u otro tenant ⇒ ErrNotFound.
 func (m *Module) StaffCard(tenantID, staffID string) (name, specialty string, active bool, err error) {
-	if tenantID == "" || staffID == "" {
+	if tenantID != m.tenantID || staffID == "" {
 		return "", "", false, ErrNotFound
 	}
 	s, err := m.GetStaff(tenantID, staffID)
@@ -215,18 +114,16 @@ func (m *Module) StaffCard(tenantID, staffID string) (name, specialty string, ac
 	}
 	return s.Name, s.Specialty, s.IsActive, nil
 }
-
-// StaffByUser devuelve el profesional cuya cuenta de usuario es userID. Satisface
-// DoctorReader de clinical_encounter estructuralmente. Sin fila ⇒ found=false y err=nil;
-// solo una falla de la base devuelve error.
-// Ejemplo: staffID, name, spec, ok, err := m.StaffByUser("t1", "u1")
 func (m *Module) StaffByUser(tenantID, userID string) (staffID, name, specialty string, found bool, err error) {
-	if tenantID == "" || userID == "" {
+	if tenantID != m.tenantID || userID == "" {
 		return "", "", "", false, nil
 	}
-	qb := m.db.Query(&StaffMember{}).Where(StaffMember_.TenantId).Eq(tenantID).Where(StaffMember_.UserId).Eq(userID)
-	rows, err := ReadAllStaffMember(qb)
-	if err != nil && !orm.IsNotFound(err) {
+	var rows []StaffMember
+	err = m.store.ReadAll(func() model.Model { return &StaffMember{} }, crud.Query{Conditions: []storage.Condition{storage.Eq("user_id", userID)}}, func(mod model.Model) { rows = append(rows, *(mod.(*StaffMember))) })
+	if err != nil {
+		if model.KindOf(err) == model.ErrorNotFound {
+			return "", "", "", false, nil
+		}
 		return "", "", "", false, err
 	}
 	if len(rows) == 0 {
@@ -235,18 +132,8 @@ func (m *Module) StaffByUser(tenantID, userID string) (staffID, name, specialty 
 	s := rows[0]
 	return s.Id, s.Name, s.Specialty, true, nil
 }
-
-// StaffExists reporta si un miembro del personal con este id pertenece a este
-// tenant. Satisface el puerto estrecho StaffReader que un módulo de programación
-// declara en su propio lado (StaffExists(tenantId, staffId) (bool, error)) —
-// estructuralmente, sin adaptador y sin importación en ninguna dirección.
-//
-// Una fila ausente es (false, nil), NO un error: "este id no es nuestro" es
-// la respuesta que el llamante solicitó. Solo un fallo real de almacenamiento retorna un
-// error no nulo, para que un llamante nunca confunda una base de datos caída con un "no"
-// limpio.
 func (m *Module) StaffExists(tenantID, staffID string) (bool, error) {
-	if tenantID == "" || staffID == "" {
+	if tenantID != m.tenantID || staffID == "" {
 		return false, nil
 	}
 	_, err := m.GetStaff(tenantID, staffID)
@@ -258,32 +145,27 @@ func (m *Module) StaffExists(tenantID, staffID string) (bool, error) {
 	}
 	return true, nil
 }
-
 func (m *Module) ListStaff(tenantID, search, after string, limit int64) ([]StaffMember, error) {
-	qb := m.db.Query(&StaffMember{}).Where(StaffMember_.TenantId).Eq(tenantID)
+	if tenantID != m.tenantID {
+		return nil, nil
+	}
+	var conds []storage.Condition
 	if search != "" {
 		if strings.Contains(search, "-") || (len(search) > 0 && search[0] >= '0' && search[0] <= '9') {
 			normalized, _ := m.validateRUT(search)
 			if normalized != "" {
-				qb = qb.Where(StaffMember_.Rut).Eq(normalized)
+				conds = append(conds, storage.Eq("rut", normalized))
 			} else {
-				qb = qb.Where(StaffMember_.Name).Like("%" + search + "%")
+				conds = append(conds, storage.Like("name", "%"+search+"%"))
 			}
 		} else {
-			qb = qb.Where(StaffMember_.Name).Like("%" + search + "%")
+			conds = append(conds, storage.Like("name", "%"+search+"%"))
 		}
 	}
-	if after != "" {
-		qb = qb.Where(StaffMember_.Id).Gt(after)
-	}
-	qb = qb.OrderBy(StaffMember_.Id).Asc().Limit(int(limit))
-	results, err := ReadAllStaffMember(qb)
+	var out []StaffMember
+	err := m.store.ReadAll(func() model.Model { return &StaffMember{} }, crud.Query{Conditions: conds, Limit: limit, After: after}, func(mod model.Model) { out = append(out, *(mod.(*StaffMember))) })
 	if err != nil {
 		return nil, err
-	}
-	out := make([]StaffMember, len(results))
-	for i, v := range results {
-		out[i] = *v
 	}
 	return out, nil
 }
