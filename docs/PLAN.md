@@ -2,8 +2,6 @@
 PLAN: "refactor!: staff_manager on the crud-by-declaration framework — Allow and Rules in definition.go, persistence by crud, only domain rules in rule files"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
-SESSION: 14862227171070423895
 ---
 
 > Read AGENTS.md at the repo root before any change.
@@ -142,3 +140,13 @@ Translate to Spanish every README, `docs/*`, diagram and code comment still in E
 
 `gotest` passes; `langc sync .` clean; every grep of this plan empty. A tree that does not compile or whose tests did not run is a
 failed delivery.
+
+## Additions
+
+Answers the executors of the sibling modules needed; apply them here without asking.
+
+- **Seed.** `seed.Load` never calls the router. It calls a module method `Import<Entity>(row)` kept in `import.go`, written like https://github.com/veltylabs/patient_directory/blob/main/import.go (`ImportPatient`): set `TenantId = m.tenantID`; `model.ValidateFields(model.ActionCreate, &row)`; `row.UpdatedAt = time.NowNano()`; then `m.store.Atomic(func(tx crud.Tx) error { var existing T; err := tx.ReadOne(&existing, row.Id); if err == nil { return tx.UpdateFields(&row, row.Id, importUpdateFields) }; if model.KindOf(err) == model.ErrorNotFound { return tx.Create(&row) }; return err })`. Reference seed: https://github.com/veltylabs/patient_directory/blob/main/seed/seed.go.
+- **Tests.** Same as the reference: https://github.com/veltylabs/patient_directory/blob/main/tests/setup_test.go (`mem.New()` → `orm.New(conn)` → `New(db, Deps{Publisher, TenantID, IDs})`) and https://github.com/veltylabs/patient_directory/blob/main/tests/crud_test.go. Drive the module with `caller := crud.LoopbackActingAs(pub, "u1", mod)` and `caller.Call(opOf(model.Create), &crud.CreateArgs{Records: []model.Model{&Row{…}}}, &saved, func(e error){…})`. Events arrive on the publisher passed to `LoopbackActingAs`. A caller double is https://github.com/veltylabs/patient_directory/blob/main/tests/mock_test.go. There is no `mock.Router` pattern to use.
+- **Refusals in tests.** An action outside `Allow` is not mounted: `LoopbackActingAs` answers it with a plain error whose text contains `unknown operation` (there is no `ErrUnknownOperation` constant anywhere). A refusal by crud or a rule is `"loopback: <status> <detail>"`; `model.KindOf(err)` gives `model.ErrorNotFound`, `model.ErrorInvalid` or `model.ErrorConflict`.
+- **Versions.** Run the `go get` list of «Tools» again after every `definitionc` run (it rewrites `go.mod` to older versions), then `go mod tidy`.
+- **Do not stop to confirm.** Do all stages in order; when the delivery check passes, commit, push and open the PR.
