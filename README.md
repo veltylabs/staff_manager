@@ -14,14 +14,14 @@ Módulo de gestión de personal para el ecosistema Velty: registro delimitado po
 
 ## Operaciones (Ops)
 
-| Op | Acción | Recurso |
-|---|---|---|
-| `list_staff` | read | tabla `staff_member` |
-| `get_staff` | read | tabla `staff_member` |
-| `upsert_staff` | create/update | tabla `staff_member` |
-| `delete_staff` | delete | tabla `staff_member` |
+| Today | After |
+|---|---|
+| `list_staff` | `staff_member.read` |
+| `get_staff` | `staff_member.read` with `id` |
+| `upsert_staff` | `staff_member.create` / `staff_member.update` |
+| `delete_staff` | `staff_member.delete` |
 
-La lista carga tal cual como declara su `view.Page` y efectúa su búsqueda en el servidor. Las operaciones de guardar y borrar usan `view.MountSave` y `view.MountDelete`. Los errores de dominio usan `rpc.WriteError`.
+Con Allow + rules en vez de operaciones a mano.
 
 Este módulo no importa ningún otro módulo: los equipos de cada persona se guardan como ids sueltos (`staff_device.device_id`) y la app conecta `device_manager` por `Deps.Devices` (interfaz `DeviceReader`).
 

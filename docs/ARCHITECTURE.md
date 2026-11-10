@@ -1,5 +1,8 @@
 Las fechas que ve una persona salen de la zona de la instalación (`Deps.Zone` / `BrowserDeps.Zone`); un día guardado como clave usa las funciones UTC.
 
+## Rules vs Persistence
+El framework (crud) maneja la persistencia, mientras que el módulo declara y escribe solo las reglas de dominio en los archivos de reglas.
+
 ## Listas
 
 Las listas cargan tal cual declara su `view.Page` y efectúan la búsqueda en el servidor.
