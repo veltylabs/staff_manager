@@ -6,8 +6,10 @@
     "Specialty": ["Especialidad", "专科", "विशेषज्ञता", "التخصص", "Especialidade", "Spécialité", "Fachgebiet", "Специальность"],
     "Staff": ["Personal", "员工", "कर्मचारी", "الموظفون", "Equipe", "Personnel", "Personal", "Персонал"],
     "The clinic's staff: profiles, contact details and professional credentials.": ["El personal de la clínica: perfiles, datos de contacto y credenciales profesionales.", "诊所员工：个人资料、联系方式和职业资质。", "क्लिनिक के कर्मचारी: प्रोफ़ाइल, संपर्क विवरण और पेशेवर प्रमाण-पत्र।", "موظفو العيادة: الملفات الشخصية وبيانات الاتصال والمؤهلات المهنية.", "A equipe da clínica: perfis, dados de contato e credenciais profissionais.", "Le personnel de la clinique : profils, coordonnées et qualifications professionnelles.", "Das Personal der Klinik: Profile, Kontaktdaten und berufliche Qualifikationen.", "Персонал клиники: профили, контактные данные и профессиональные квалификации."],
+    "conflict": ["", "", "", "", "", "", "", ""],
     "device id": ["id de equipo", "设备 ID", "डिवाइस आईडी", "معرّف الجهاز", "ID do dispositivo", "ID de l'appareil", "Geräte-ID", "ID устройства"],
     "staff id": ["id de funcionario", "员工 ID", "कर्मचारी आईडी", "معرّف الموظف", "ID do funcionário", "ID du membre du personnel", "Mitarbeiter-ID", "ID сотрудника"],
+    "staff not found": ["", "", "", "", "", "", "", ""],
     "staff_manager: staffID and deviceID required": ["staff_manager: staffID y deviceID requeridos", "staff_manager：需要 staffID 和 deviceID", "staff_manager: staffID और deviceID आवश्यक हैं", "staff_manager: يلزم staffID و deviceID", "staff_manager: staffID e deviceID são obrigatórios", "staff_manager : staffID et deviceID requis", "staff_manager: staffID und deviceID erforderlich", "staff_manager: требуются staffID и deviceID"]
   }
 }

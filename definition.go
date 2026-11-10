@@ -6,7 +6,7 @@ import (
 )
 
 var StaffMemberModel = model.Definition{
-	Name: "staff_member",
+	Name:  "staff_member",
 	Allow: model.Create | model.Read | model.Update | model.Delete,
 	Rules: model.Rules{
 		Create: model.AddMyBusinessRule,

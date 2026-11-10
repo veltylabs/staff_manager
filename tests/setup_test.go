@@ -3,12 +3,12 @@ package tests
 import (
 	"testing"
 
+	staffmanager "github.com/veltylabs/staff_manager"
 	"webtyp.com/events"
 	"webtyp.com/fmt"
 	"webtyp.com/model"
 	"webtyp.com/orm"
 	"webtyp.com/storage/mem"
-	staffmanager "github.com/veltylabs/staff_manager"
 )
 
 const testTenant = "test-tenant"

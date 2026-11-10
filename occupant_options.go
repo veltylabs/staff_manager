@@ -2,7 +2,6 @@ package staffmanager
 
 import (
 	"webtyp.com/fmt"
-
 )
 
 // OccupantOptions entrega el personal activo como opciones {id, nombre}: es lo
