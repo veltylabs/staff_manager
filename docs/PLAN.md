@@ -2,8 +2,10 @@
 PLAN: "refactor!: staff_manager on the crud-by-declaration framework — Allow and Rules in definition.go, persistence by crud, only domain rules in rule files"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 14576400257336850486
+PR: https://github.com/veltylabs/staff_manager/pull/14
+REVIEWED_COMMIT: 0c1aeceb1ee1ffba48807e1e1e91e4cb4af19dac
 ---
 
 > Read AGENTS.md at the repo root before any change.
