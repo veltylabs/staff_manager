@@ -8,7 +8,7 @@ require (
 	webtyp.com/ddl v0.0.49
 	webtyp.com/events v0.1.8
 	webtyp.com/fmt v1.0.0
-	webtyp.com/input v0.0.36
+	webtyp.com/input v0.1.0
 	webtyp.com/lang v0.1.16
 	webtyp.com/model v0.2.19
 	webtyp.com/orm v0.12.33
@@ -16,6 +16,7 @@ require (
 	webtyp.com/storage v0.2.2
 	webtyp.com/svg v0.3.33
 	webtyp.com/time v0.6.4
+	webtyp.com/unixid v0.3.1
 	webtyp.com/view v0.6.72
 )
 
@@ -44,6 +45,7 @@ require (
 	webtyp.com/escape v0.1.0 // indirect
 	webtyp.com/fetch v0.1.30 // indirect
 	webtyp.com/filepath v0.1.0 // indirect
+	webtyp.com/filetype v0.0.6 // indirect
 	webtyp.com/json v0.5.40 // indirect
 	webtyp.com/keyring v0.2.9 // indirect
 	webtyp.com/mcp v0.3.24 // indirect
@@ -52,7 +54,6 @@ require (
 	webtyp.com/rbac v0.0.37 // indirect
 	webtyp.com/rpc v0.2.21 // indirect
 	webtyp.com/server v0.2.120 // indirect
-	webtyp.com/unixid v0.3.1 // indirect
 	webtyp.com/user v0.3.14 // indirect
 	webtyp.com/webauthn v0.1.16 // indirect
 )
