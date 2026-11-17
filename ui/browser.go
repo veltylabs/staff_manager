@@ -4,14 +4,14 @@ import (
 	staffmanager "github.com/veltylabs/staff_manager"
 	"webtyp.com/lang"
 	"webtyp.com/model"
-	"webtyp.com/router"
 	"webtyp.com/view"
 )
 
 const descStaff lang.Text = "The clinic's staff: profiles, contact details and professional credentials."
 
 // Screens declara las pantallas que este módulo ofrece al menú de la app.
-func Screens(caller router.Caller) []view.Screen {
+func Screens(d view.BrowserDeps) []view.Screen {
+	caller := d.Caller
 	return []view.Screen{
 		{
 			ID:         ID,

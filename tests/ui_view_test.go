@@ -9,6 +9,7 @@ import (
 	"github.com/veltylabs/staff_manager/ui"
 	"webtyp.com/model"
 	"webtyp.com/router"
+	"webtyp.com/view"
 )
 
 type mockCaller struct{}
@@ -26,7 +27,7 @@ var _ router.Caller = (*mockCaller)(nil)
 func TestUI_Screens(t *testing.T) {
 	fake := &mockCaller{}
 
-	screens := ui.Screens(fake)
+	screens := ui.Screens(view.BrowserDeps{Caller: fake})
 	if len(screens) != 1 {
 		t.Fatalf("len(screens) = %d, want 1", len(screens))
 	}

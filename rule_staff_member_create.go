@@ -8,9 +8,9 @@ func (p *StaffMember) Create(a crud.CurrentUser, tx crud.Tx, m *Module) (crud.Ru
 	p.UserId = a.UserID
 	p.TenantId = m.tenantID
 	if err := checkStaffChange(tx, m, nil, p, nil); err != nil {
-		return 0, err
+		return crud.RuleAnswer{}, err
 	}
-	return crud.ApplyAndPublish, nil
+	return crud.ApplyAndPublish(), nil
 }
 func checkStaffChange(tx crud.Tx, m *Module, old, next *StaffMember, fields []string) error {
 	hasRut := false
