@@ -1,14 +1,25 @@
 package staffmanager
 
-import "webtyp.com/crud"
-import "webtyp.com/model"
-import "webtyp.com/storage"
+import (
+	"webtyp.com/crud"
+	"webtyp.com/model"
+	"webtyp.com/storage"
+)
 
 func (p *StaffMember) Delete(a crud.CurrentUser, tx crud.Tx, m *Module) (crud.RuleAnswer, error) {
 	var toDelete []StaffDevice
-	tx.ReadAll(func() model.Model { return &StaffDevice{} }, crud.Query{Conditions: []storage.Condition{storage.Eq("staff_id", p.Id)}}, func(mod model.Model) { toDelete = append(toDelete, *(mod.(*StaffDevice))) })
+	err := tx.ReadAll(
+		func() model.Model { return &StaffDevice{} },
+		crud.Query{Conditions: []storage.Condition{storage.Eq(StaffDevice_.StaffId, p.Id)}},
+		func(mod model.Model) { toDelete = append(toDelete, *(mod.(*StaffDevice))) },
+	)
+	if err != nil {
+		return crud.RuleAnswer{}, err
+	}
 	for _, sd := range toDelete {
-		tx.Delete(&sd, sd.StaffId+"\x00"+sd.DeviceId) // Assumes serialized composite key for crud
+		if err := tx.Delete(&sd, sd.StaffId+"\x00"+sd.DeviceId); err != nil {
+			return crud.RuleAnswer{}, err
+		}
 	}
 	return crud.ApplyAndPublish(), nil
 }

@@ -132,6 +132,22 @@ func (m *Module) StaffByUser(tenantID, userID string) (staffID, name, specialty 
 	s := rows[0]
 	return s.Id, s.Name, s.Specialty, true, nil
 }
+// UserByStaff devuelve la cuenta de usuario de un profesional: el inverso de StaffByUser. found es false si el
+// profesional no existe o no tiene cuenta.
+// Ejemplo: userID, ok, err := m.UserByStaff("t1", "staff-1")
+func (m *Module) UserByStaff(tenantID, staffID string) (userID string, found bool, err error) {
+	if tenantID != m.tenantID || staffID == "" {
+		return "", false, nil
+	}
+	s, err := m.GetStaff(tenantID, staffID)
+	if err != nil {
+		if model.KindOf(err) == model.ErrorNotFound {
+			return "", false, nil
+		}
+		return "", false, err
+	}
+	return s.UserId, s.UserId != "", nil
+}
 func (m *Module) StaffExists(tenantID, staffID string) (bool, error) {
 	if tenantID != m.tenantID || staffID == "" {
 		return false, nil
